@@ -281,7 +281,7 @@
 |------|------|------|
 | 框架 | **React Native** | 跨平台，生态成熟，支持原生能力扩展 |
 | 语言 | TypeScript | 类型安全，便于多人协作 |
-| 状态管理 | Redux Toolkit / Zustand | 轻量级，适合MVP |
+| 状态管理 | Redux Toolkit（MVP默认） / Zustand（可选） | 轻量级，适合MVP |
 | 网络请求 | Axios | 常用HTTP客户端 |
 | 本地存储 | AsyncStorage | 轻量级键值存储（Token、用户偏好） |
 | 语音输入 | react-native-voice | 语音转文字能力 |
@@ -414,8 +414,8 @@
 
 1. **AI模型优先级**：MVP先用哪个模型？建议DeepSeek（便宜）或Claude（教学效果好）
    ✅ 已确认：无优先级偏好，默认采用成本+学科适配逻辑（如数学优先用DeepSeek，语文优先用Claude）
-2. **语音输入**：用哪个插件？`react-native-voice` 还是 `react-native-tts`？
-   ✅ 已确认：语音输入使用`react-native-voice`插件，语音输出（react-native-tts）MVP预留
+2. **语音能力**：输入与输出分别使用哪些插件？
+   ✅ 已确认：语音输入使用`react-native-voice`插件，语音输出（`react-native-tts`）MVP预留
 3. **推送通知**：国内用Firebase可能有问题，备选方案用个推、极光推送？
    ✅ 已确认：MVP不实现推送通知，后续版本再接入
 4. **微信登录**：需要微信开放平台认证（需企业资质），MVP是否必须做？
