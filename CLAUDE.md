@@ -97,7 +97,7 @@ When the app scaffold is introduced, add the actual commands here for:
 
 Planned top-level structure:
 - `backend/` for server, database, auth, AI integration, and APIs
-- `frontend/mobile/` for the Flutter student/parent app
+- `frontend/mobile/` for the React Native student/parent app
 - `frontend/web/` for the React teacher/school app
 - `content/` for curriculum data, examples, and presentation content
 - `docs/` for supporting project documents
