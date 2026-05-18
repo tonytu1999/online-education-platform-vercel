@@ -8,6 +8,6 @@ export const Route = createFileRoute("/student")({
 function StudentLayout() {
   const { loggedIn, role } = useAppStore();
   if (!loggedIn) return <Navigate to="/login" />;
-  if (role !== "student") return <Navigate to="/role" />;
+  if (!role || role !== "student") return <Navigate to="/onboarding" />;
   return <Outlet />;
 }

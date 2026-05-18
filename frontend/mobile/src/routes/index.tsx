@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { loggedIn, role, onboarded } = useAppStore();
   if (!loggedIn) return <Navigate to="/login" />;
-  if (!onboarded) return <Navigate to="/onboarding" />;
-  if (role) return <Navigate to={role === "student" ? "/student/learn" : "/parent/overview"} />;
-  return <Navigate to="/role" />;
+  if (!onboarded || !role) return <Navigate to="/onboarding" />;
+  if (role === "parent") return <Navigate to="/parent/overview" />;
+  return <Navigate to="/student/learn" />;
 }

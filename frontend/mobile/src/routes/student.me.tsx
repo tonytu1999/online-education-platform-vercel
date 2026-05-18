@@ -4,24 +4,19 @@ import { MobileShell } from "@/components/mobile/MobileShell";
 import { studentTabs } from "@/components/mobile/student-tabs";
 import { useAppStore, type ExamType } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { Repeat, LogOut, Settings, Crown, School, ChevronRight, BookMarked, GraduationCap, X } from "lucide-react";
+import { LogOut, Settings, Crown, School, ChevronRight, BookMarked, GraduationCap, X } from "lucide-react";
 
 export const Route = createFileRoute("/student/me")({
   component: StudentMe,
 });
 
 function StudentMe() {
-  const { account, nickname, examType, textbook, school, setRole, logout, setExamType, setSchool } = useAppStore();
+  const { account, nickname, examType, textbook, school, logout, setExamType, setSchool } = useAppStore();
   const navigate = useNavigate();
   const t = useT();
   const [showExamPicker, setShowExamPicker] = useState(false);
   const [showSchoolEditor, setShowSchoolEditor] = useState(false);
   const [editSchool, setEditSchool] = useState("");
-
-  const switchRole = () => {
-    setRole("parent");
-    navigate({ to: "/parent/overview" });
-  };
 
   const examOptions: { key: ExamType; label: string }[] = [
     { key: "gaokao", label: t("exam.gaokao") },
@@ -86,16 +81,8 @@ function StudentMe() {
 
       {/* Actions */}
       <button
-        onClick={switchRole}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary-soft/50 py-3.5 text-sm font-bold text-primary transition-all active:scale-[0.97]"
-      >
-        <Repeat className="h-4 w-4" />
-        {t("me.switchToParent")}
-      </button>
-
-      <button
         onClick={() => { logout(); navigate({ to: "/login" }); }}
-        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-border/40 bg-card py-3.5 text-sm text-muted-foreground/60 transition-all active:scale-[0.97]"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border/40 bg-card py-3.5 text-sm text-muted-foreground/60 transition-all active:scale-[0.97]"
       >
         <LogOut className="h-4 w-4" />
         {t("me.logout")}

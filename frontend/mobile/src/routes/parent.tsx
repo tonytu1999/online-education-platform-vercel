@@ -8,6 +8,6 @@ export const Route = createFileRoute("/parent")({
 function ParentLayout() {
   const { loggedIn, role } = useAppStore();
   if (!loggedIn) return <Navigate to="/login" />;
-  if (role !== "parent") return <Navigate to="/role" />;
+  if (!role || role !== "parent") return <Navigate to="/onboarding" />;
   return <Outlet />;
 }

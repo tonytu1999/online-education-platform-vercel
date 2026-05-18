@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useAppStore, type Role } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { ChevronRight, ChevronLeft, Search } from "lucide-react";
+import { ChevronRight, ChevronLeft, Search, X, Check } from "lucide-react";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "完善信息 — 智学" }] }),
@@ -23,7 +23,38 @@ const GENDERS = [
   { id: "female", emoji: "👧", label: "onboard.gender.female" },
 ];
 
-const GRADES = [
+const HK_SCHOOLS = [
+  "拔萃男书院", "拔萃女书院", "圣保罗男女中学",
+  "皇仁书院", "英皇书院", "庇理罗士女子中学",
+  "圣保禄学校", "嘉诺撒圣心书院", "玛利曼中学",
+  "香港华仁书院", "九龙华仁书院", "圣芳济各书院",
+  "德望学校", "协恩中学", "圣士提反书院",
+];
+
+const CN_SCHOOLS = [
+  "北京市第一中学", "北京市第四中学", "北京师范大学附属中学",
+  "上海市上海中学", "华东师范大学第二附属中学", "复旦大学附属中学",
+  "广州市执信中学", "深圳中学", "华南师范大学附属中学",
+  "杭州市第二中学", "南京师范大学附属中学", "武汉市第二中学",
+  "成都市第七中学", "西安市高新一中", "长沙市雅礼中学",
+];
+
+const HK_GRADES = [
+  { id: "p1", label: "小一" },
+  { id: "p2", label: "小二" },
+  { id: "p3", label: "小三" },
+  { id: "p4", label: "小四" },
+  { id: "p5", label: "小五" },
+  { id: "p6", label: "小六" },
+  { id: "f1", label: "中一" },
+  { id: "f2", label: "中二" },
+  { id: "f3", label: "中三" },
+  { id: "f4", label: "中四" },
+  { id: "f5", label: "中五" },
+  { id: "f6", label: "中六" },
+];
+
+const CN_GRADES = [
   { id: "p1", label: "小学一年级" },
   { id: "p2", label: "小学二年级" },
   { id: "p3", label: "小学三年级" },
@@ -38,13 +69,141 @@ const GRADES = [
   { id: "s3", label: "高三" },
 ];
 
-const SCHOOLS = [
-  "北京市第一中学", "北京市第四中学", "北京师范大学附属中学",
-  "上海市上海中学", "华东师范大学第二附属中学", "复旦大学附属中学",
-  "广州市执信中学", "深圳中学", "华南师范大学附属中学",
-  "杭州市第二中学", "南京师范大学附属中学", "武汉市第二中学",
-  "成都市第七中学", "西安市高新一中", "长沙市雅礼中学",
-];
+function SchoolGradePicker({
+  schools,
+  grades,
+  selectedSchool,
+  selectedGrade,
+  onConfirm,
+  onClose,
+  t,
+  showGrade,
+}: {
+  schools: string[];
+  grades: { id: string; label: string }[];
+  selectedSchool: string;
+  selectedGrade: string;
+  onConfirm: (school: string, grade: string) => void;
+  onClose: () => void;
+  t: (key: string) => string;
+  showGrade: boolean;
+}) {
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [tempSchool, setTempSchool] = useState(selectedSchool);
+  const [tempGrade, setTempGrade] = useState(selectedGrade);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const filteredSchools = schoolQuery
+    ? schools.filter((s) => s.includes(schoolQuery))
+    : schools;
+
+  const canConfirm = showGrade
+    ? tempSchool !== "" && tempGrade !== ""
+    : tempSchool !== "";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-[430px] rounded-t-3xl bg-background shadow-2xl slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <h3 className="text-base font-bold">{t("onboard.school.title")}</h3>
+          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted">
+            <X className="h-4 w-4 text-muted-foreground/60" />
+          </button>
+        </div>
+
+        {/* School search */}
+        <div className="px-5 pb-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />
+            <input
+              ref={inputRef}
+              value={schoolQuery}
+              onChange={(e) => setSchoolQuery(e.target.value)}
+              placeholder={t("onboard.school.placeholder")}
+              className="w-full rounded-2xl border border-border/80 bg-card py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+            />
+          </div>
+        </div>
+
+        {/* School list */}
+        <div className="max-h-36 overflow-y-auto px-5">
+          <div className="space-y-1 pb-2">
+            {filteredSchools.map((s) => (
+              <button
+                key={s}
+                onClick={() => setTempSchool(s)}
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-left text-sm transition-all ${
+                  tempSchool === s
+                    ? "border-primary/50 bg-primary-soft text-primary"
+                    : "border-border/60 bg-card text-foreground hover:bg-muted/50"
+                }`}
+              >
+                <span>{s}</span>
+                {tempSchool === s && <Check className="h-4 w-4 text-primary" />}
+              </button>
+            ))}
+            <button
+              onClick={() => setTempSchool(t("onboard.school.other"))}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-left text-sm transition-all ${
+                tempSchool === t("onboard.school.other")
+                  ? "border-primary/50 bg-primary-soft text-primary"
+                  : "border-border/60 bg-card text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <span>{t("onboard.school.other")}</span>
+              {tempSchool === t("onboard.school.other") && <Check className="h-4 w-4 text-primary" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Grade section */}
+        {showGrade && (
+          <div className="px-5 pt-3 pb-2">
+            <p className="text-xs font-semibold text-muted-foreground/60 mb-2">{t("onboard.grade.title")}</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {grades.map((g) => (
+                <button
+                  key={g.id}
+                  onClick={() => setTempGrade(g.id)}
+                  className={`rounded-xl border px-2 py-2 text-center text-xs font-medium transition-all ${
+                    tempGrade === g.id
+                      ? "border-primary/50 bg-primary-soft text-primary"
+                      : "border-border/60 bg-card text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Confirm button */}
+        <div className="px-5 pb-6 pt-3">
+          <button
+            onClick={() => canConfirm && onConfirm(tempSchool, tempGrade)}
+            disabled={!canConfirm}
+            className={`w-full rounded-2xl py-3.5 text-sm font-bold transition-all active:scale-[0.97] ${
+              canConfirm
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                : "bg-muted text-muted-foreground/50"
+            }`}
+          >
+            {t("common.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function OnboardingPage() {
   const [step, setStep] = useState(0);
@@ -53,18 +212,23 @@ function OnboardingPage() {
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [school, setSchool] = useState("");
-  const [studentSchoolQuery, setStudentSchoolQuery] = useState("");
-  const [parentSchoolQuery, setParentSchoolQuery] = useState("");
+  const [grade, setGrade] = useState("");
   const [linkPhone, setLinkPhone] = useState("");
   const [linkCode, setLinkCode] = useState("");
   const [linked, setLinked] = useState(false);
-  const [grade, setGrade] = useState("");
+  const [showSchoolPicker, setShowSchoolPicker] = useState(false);
 
   const navigate = useNavigate();
   const t = useT();
   const setRoleInStore = useAppStore((s) => s.setRole);
 
-  const totalSteps = role === "parent" ? 4 : 6;
+  const isHK = country === "hk";
+  const schools = isHK ? HK_SCHOOLS : CN_SCHOOLS;
+  const grades = isHK ? HK_GRADES : CN_GRADES;
+
+  // Student: country(0) → role(1) → gender(2) → age(3) → school+grade(4) = 5 steps
+  // Parent:  country(0) → role(1) → school(2) → link(3) = 4 steps
+  const totalSteps = role === "parent" ? 4 : 5;
 
   const canNext =
     (step === 0 && country !== "") ||
@@ -77,8 +241,7 @@ function OnboardingPage() {
       (role === "student" && age !== "" && Number(age) > 0 && Number(age) < 100) ||
       (role === "parent" && linked)
     )) ||
-    (step === 4 && role === "student" && school !== "") ||
-    (step === 5 && role === "student" && grade !== "");
+    (step === 4 && role === "student" && school !== "" && grade !== "");
 
   const handleNext = () => {
     if (step === 1) {
@@ -94,14 +257,30 @@ function OnboardingPage() {
   };
 
   const handleBack = () => {
-    if (step > 0) setStep(step - 1);
-    else navigate({ to: "/login" });
+    if (step > 0) {
+      setStep(step - 1);
+      if (step === 1) {
+        setRoleState("");
+        setGender("");
+        setAge("");
+        setSchool("");
+        setGrade("");
+        setLinked(false);
+        setLinkPhone("");
+        setLinkCode("");
+      }
+    } else {
+      navigate({ to: "/login" });
+    }
   };
 
-  const currentSchoolQuery = role === "parent" ? parentSchoolQuery : studentSchoolQuery;
-  const filteredSchools = currentSchoolQuery
-    ? SCHOOLS.filter((s) => s.includes(currentSchoolQuery))
-    : SCHOOLS;
+  const handleSchoolConfirm = (selectedSchool: string, selectedGrade: string) => {
+    setSchool(selectedSchool);
+    if (role === "student") {
+      setGrade(selectedGrade);
+    }
+    setShowSchoolPicker(false);
+  };
 
   const stepContent = [
     /* Step 0: Country */
@@ -216,78 +395,42 @@ function OnboardingPage() {
       </div>
     </div>,
 
-    /* Step 4: School */
-    <div key="school" className="flex flex-col items-center pt-10">
+    /* Step 4: School + Grade (trigger picker) */
+    <div key="school-grade" className="flex flex-col items-center pt-10">
       <div className="flex h-18 w-18 items-center justify-center rounded-3xl bg-primary-soft text-4xl" style={{ width: 72, height: 72 }}>
         🏫
       </div>
       <h2 className="mt-7 text-xl font-bold tracking-tight">{t("onboard.school.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground/70">{t("onboard.school.subtitle")}</p>
       <div className="mt-6 w-full">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />
-          <input
-            value={studentSchoolQuery}
-            onChange={(e) => setStudentSchoolQuery(e.target.value)}
-            placeholder={t("onboard.school.placeholder")}
-            className="w-full rounded-2xl border border-border/80 bg-card py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
-          />
-        </div>
-        <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
-          {filteredSchools.map((s) => (
-            <button
-              key={s}
-              onClick={() => setSchool(s)}
-              className={`w-full rounded-xl border px-4 py-2.5 text-left text-sm transition-all duration-200 ${
-                school === s
-                  ? "border-primary/50 bg-primary-soft text-primary"
-                  : "border-border/60 bg-card text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-          <button
-            onClick={() => setSchool(t("onboard.school.other"))}
-            className={`w-full rounded-xl border px-4 py-2.5 text-left text-sm transition-all duration-200 ${
-              school === t("onboard.school.other")
-                ? "border-primary/50 bg-primary-soft text-primary"
-                : "border-border/60 bg-card text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {t("onboard.school.other")}
-          </button>
-        </div>
-      </div>
-    </div>,
-
-    /* Step 5: Grade */
-    <div key="grade" className="flex flex-col items-center pt-10">
-      <div className="flex h-18 w-18 items-center justify-center rounded-3xl bg-primary-soft text-4xl" style={{ width: 72, height: 72 }}>
-        📚
-      </div>
-      <h2 className="mt-7 text-xl font-bold tracking-tight">{t("onboard.grade.title")}</h2>
-      <p className="mt-2 text-sm text-muted-foreground/70">{t("onboard.grade.subtitle")}</p>
-      <div className="mt-6 grid w-full grid-cols-2 gap-2">
-        {GRADES.map((g) => (
-          <button
-            key={g.id}
-            onClick={() => setGrade(g.id)}
-            className={`rounded-2xl border px-3 py-3 text-center text-sm font-medium transition-all duration-200 ${
-              grade === g.id
-                ? "border-primary/50 bg-primary-soft text-primary shadow-sm"
-                : "border-border/60 bg-card text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {g.label}
-          </button>
-        ))}
+        <button
+          onClick={() => setShowSchoolPicker(true)}
+          className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-all ${
+            school && grade
+              ? "border-primary/50 bg-primary-soft"
+              : "border-border/80 bg-card hover:border-border"
+          }`}
+        >
+          <div className="flex flex-col">
+            {school && grade ? (
+              <>
+                <span className="text-sm font-semibold text-primary">{school}</span>
+                <span className="text-xs text-muted-foreground/60 mt-0.5">
+                  {grades.find((g) => g.id === grade)?.label ?? grade}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground/50">{t("onboard.school.placeholder")}</span>
+            )}
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+        </button>
       </div>
     </div>,
   ];
 
   const parentSteps = [
-    /* Step 2: School */
+    /* Step 2: School (parent also uses picker) */
     <div key="school" className="flex flex-col items-center pt-10">
       <div className="flex h-18 w-18 items-center justify-center rounded-3xl bg-primary-soft text-4xl" style={{ width: 72, height: 72 }}>
         🏫
@@ -295,40 +438,19 @@ function OnboardingPage() {
       <h2 className="mt-7 text-xl font-bold tracking-tight">{t("onboard.school.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground/70">{t("onboard.school.subtitle")}</p>
       <div className="mt-6 w-full">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />
-          <input
-            value={parentSchoolQuery}
-            onChange={(e) => setParentSchoolQuery(e.target.value)}
-            placeholder={t("onboard.school.placeholder")}
-            className="w-full rounded-2xl border border-border/80 bg-card py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
-          />
-        </div>
-        <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
-          {filteredSchools.map((s) => (
-            <button
-              key={s}
-              onClick={() => setSchool(s)}
-              className={`w-full rounded-xl border px-4 py-2.5 text-left text-sm transition-all duration-200 ${
-                school === s
-                  ? "border-primary/50 bg-primary-soft text-primary"
-                  : "border-border/60 bg-card text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-          <button
-            onClick={() => setSchool(t("onboard.school.other"))}
-            className={`w-full rounded-xl border px-4 py-2.5 text-left text-sm transition-all duration-200 ${
-              school === t("onboard.school.other")
-                ? "border-primary/50 bg-primary-soft text-primary"
-                : "border-border/60 bg-card text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {t("onboard.school.other")}
-          </button>
-        </div>
+        <button
+          onClick={() => setShowSchoolPicker(true)}
+          className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-all ${
+            school
+              ? "border-primary/50 bg-primary-soft"
+              : "border-border/80 bg-card hover:border-border"
+          }`}
+        >
+          <span className={`text-sm ${school ? "font-semibold text-primary" : "text-muted-foreground/50"}`}>
+            {school || t("onboard.school.placeholder")}
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+        </button>
       </div>
     </div>,
 
@@ -427,6 +549,20 @@ function OnboardingPage() {
           </button>
         </div>
       </div>
+
+      {/* School & Grade Picker Modal */}
+      {showSchoolPicker && (
+        <SchoolGradePicker
+          schools={schools}
+          grades={grades}
+          selectedSchool={school}
+          selectedGrade={grade}
+          onConfirm={handleSchoolConfirm}
+          onClose={() => setShowSchoolPicker(false)}
+          t={t}
+          showGrade={role === "student"}
+        />
+      )}
     </div>
   );
 }

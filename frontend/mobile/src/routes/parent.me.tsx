@@ -4,22 +4,17 @@ import { MobileShell } from "@/components/mobile/MobileShell";
 import { parentTabs } from "@/components/mobile/parent-tabs";
 import { useAppStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { Repeat, LogOut, Settings, Crown, Bell, ChevronRight } from "lucide-react";
+import { LogOut, Settings, Crown, Bell, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/parent/me")({
   component: ParentMe,
 });
 
 function ParentMe() {
-  const { account, setRole, logout } = useAppStore();
+  const { account, logout } = useAppStore();
   const navigate = useNavigate();
   const t = useT();
   const [notifyOn, setNotifyOn] = useState(true);
-
-  const switchRole = () => {
-    setRole("student");
-    navigate({ to: "/student/learn" });
-  };
 
   const items: { Icon: typeof Crown; label: string; value: string; to?: string; muted?: boolean }[] = [
     { Icon: Crown, label: t("me.member"), value: t("me.member.value"), muted: true },
@@ -83,16 +78,8 @@ function ParentMe() {
 
       {/* Actions */}
       <button
-        onClick={switchRole}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-mastered/20 bg-mastered-soft/50 py-3.5 text-sm font-bold text-mastered transition-all active:scale-[0.97]"
-      >
-        <Repeat className="h-4 w-4" />
-        {t("me.switchToStudent")}
-      </button>
-
-      <button
         onClick={() => { logout(); navigate({ to: "/login" }); }}
-        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-border/40 bg-card py-3.5 text-sm text-muted-foreground/60 transition-all active:scale-[0.97]"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border/40 bg-card py-3.5 text-sm text-muted-foreground/60 transition-all active:scale-[0.97]"
       >
         <LogOut className="h-4 w-4" />
         {t("me.logout")}
