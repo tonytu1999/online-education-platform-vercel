@@ -1,0 +1,159 @@
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  PARENT
+  TEACHER
+  SCHOOL_ADMIN
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+model User {
+  id               String           @id @default(uuid())
+  email            String?          @unique
+  phone            String?          @unique
+  password         String
+  name             String
+  role             Role             @default(STUDENT)
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  children   UserParent[] @relation("ParentToChildren")
+  parents    UserParent[] @relation("ChildToParents")
+  taughtClasses Class[]   @relation("ClassTeacher")
+  studentClasses ClassStudent[]
+  progressRecords Progress[]
+  mentalHealthRecords MentalHealth[]
+  chatHistories ChatHistory[]
+}
+
+model UserParent {
+  id        String @id @default(uuid())
+  parentId  String
+  childId   String
+  parent    User   @relation("ParentToChildren", fields: [parentId], references: [id])
+  child     User   @relation("ChildToParents", fields: [childId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([parentId, childId])
+}
+
+model School {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now())
+  classes   Class[]
+}
+
+model Class {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  teacherId String
+  teacher   User     @relation("ClassTeacher", fields: [teacherId], references: [id])
+  students  ClassStudent[]
+  createdAt DateTime @default(now())
+}
+
+model ClassStudent {
+  id        String   @id @default(uuid())
+  classId   String
+  studentId String
+  class     Class    @relation(fields: [classId], references: [id])
+  student   User     @relation(fields: [studentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([classId, studentId])
+}
+
+enum MasteryLevel {
+  UNMASTERED
+  PARTIAL
+  MASTERED
+}
+
+model Subject {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  chapters  Chapter[]
+}
+
+model Chapter {
+  id        String    @id @default(uuid())
+  name      String
+  subjectId String
+  subject   Subject   @relation(fields: [subjectId], references: [id])
+  knowledgePoints KnowledgePoint[]
+}
+
+model KnowledgePoint {
+  id        String    @id @default(uuid())
+  name      String
+  desc      String?
+  chapterId String
+  chapter   Chapter   @relation(fields: [chapterId], references: [id])
+  progressRecords Progress[]
+}
+
+model Progress {
+  id               String       @id @default(uuid())
+  studentId        String
+  knowledgePointId String
+  student          User         @relation(fields: [studentId], references: [id])
+  knowledgePoint   KnowledgePoint @relation(fields: [knowledgePointId], references: [id])
+  mastery          MasteryLevel @default(UNMASTERED)
+  studyTimeSeconds Int          @default(0)
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([studentId, knowledgePointId])
+}
+
+model MentalHealth {
+  id               String   @id @default(uuid())
+  studentId        String
+  student          User     @relation(fields: [studentId], references: [id])
+  emotionPolarity  String   
+  riskLevel        String   
+  keywords         String   
+  createdAt        DateTime @default(now())
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+  message   String   @db.Text
+  sender    String   
+  modelUsed String?  
+  createdAt DateTime @default(now())
+}
+
+model ForbiddenKeyword {
+  id        String   @id @default(uuid())
+  word      String   @unique
+  createdAt DateTime @default(now())
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
