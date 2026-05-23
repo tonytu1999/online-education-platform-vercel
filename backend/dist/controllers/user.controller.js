@@ -18,6 +18,28 @@ const getProfile = async (req, res) => {
     }
 };
 exports.getProfile = getProfile;
+const getStudentUuidByEmail = async (req, res) => {
+    try {
+        const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+        if (!email) {
+            res.status(400).json({ error: 'email is required' });
+            return;
+        }
+        const student = await prisma_1.default.user.findFirst({
+            where: { email, role: 'STUDENT' },
+            select: { id: true }
+        });
+        if (!student) {
+            res.status(404).json({ error: 'Student not found' });
+            return;
+        }
+        res.json({ id: student.id });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get student uuid' });
+    }
+};
+exports.getStudentUuidByEmail = getStudentUuidByEmail;
 const bindChild = async (req, res) => {
     try {
         if (req.user?.role !== 'PARENT') {

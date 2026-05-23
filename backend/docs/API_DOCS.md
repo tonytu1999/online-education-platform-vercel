@@ -38,6 +38,12 @@ All protected routes require an `Authorization` header with a Bearer token:
 
 ## Users
 
+### 1. Get Student UUID by Email
+- **URL**: `/users/uuid-by-email?email=student@example.com`
+- **Method**: `GET`
+- **Auth**: Required
+- **Success Response**: `200 OK` - `{ "id": "student-uuid" }`
+
 ### 1. Get Profile
 - **URL**: `/users/profile`
 - **Method**: `GET`

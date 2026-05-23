@@ -14,6 +14,31 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
+export const getStudentUuidByEmail = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+
+    if (!email) {
+      res.status(400).json({ error: 'email is required' });
+      return;
+    }
+
+    const student = await prisma.user.findFirst({
+      where: { email, role: 'STUDENT' },
+      select: { id: true }
+    });
+
+    if (!student) {
+      res.status(404).json({ error: 'Student not found' });
+      return;
+    }
+
+    res.json({ id: student.id });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get student uuid' });
+  }
+};
+
 export const bindChild = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user?.role !== 'PARENT') {

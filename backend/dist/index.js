@@ -12,6 +12,7 @@ const progress_routes_1 = __importDefault(require("./routes/progress.routes"));
 const ai_routes_1 = __importDefault(require("./routes/ai.routes"));
 const class_routes_1 = __importDefault(require("./routes/class.routes"));
 const school_routes_1 = __importDefault(require("./routes/school.routes"));
+const prisma_1 = __importDefault(require("./config/prisma"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -33,10 +34,43 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/users', user_routes_1.default);
+app.use('/users', user_routes_1.default);
 app.use('/api/progress', progress_routes_1.default);
 app.use('/api/ai', ai_routes_1.default);
 app.use('/api/classes', class_routes_1.default);
 app.use('/api/schools', school_routes_1.default);
+app.get('/users/uuid-by-email', async (req, res) => {
+    const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+    if (!email) {
+        res.status(400).json({ error: 'email is required' });
+        return;
+    }
+    const student = await prisma_1.default.user.findFirst({
+        where: { email, role: 'STUDENT' },
+        select: { id: true }
+    });
+    if (!student) {
+        res.status(404).json({ error: 'Student not found' });
+        return;
+    }
+    res.json({ id: student.id });
+});
+app.get('/api/users/uuid-by-email', async (req, res) => {
+    const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+    if (!email) {
+        res.status(400).json({ error: 'email is required' });
+        return;
+    }
+    const student = await prisma_1.default.user.findFirst({
+        where: { email, role: 'STUDENT' },
+        select: { id: true }
+    });
+    if (!student) {
+        res.status(404).json({ error: 'Student not found' });
+        return;
+    }
+    res.json({ id: student.id });
+});
 app.get('/', (req, res) => {
     res.json({ message: 'Backend is running' });
 });

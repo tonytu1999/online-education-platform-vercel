@@ -7,6 +7,7 @@ import progressRoutes from './routes/progress.routes';
 import aiRoutes from './routes/ai.routes';
 import classRoutes from './routes/class.routes';
 import schoolRoutes from './routes/school.routes';
+import prisma from './config/prisma';
 
 dotenv.config();
 
@@ -35,10 +36,52 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/schools', schoolRoutes);
+app.get('/users/uuid-by-email', async (req, res) => {
+  const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+
+  if (!email) {
+    res.status(400).json({ error: 'email is required' });
+    return;
+  }
+
+  const student = await prisma.user.findFirst({
+    where: { email, role: 'STUDENT' },
+    select: { id: true }
+  });
+
+  if (!student) {
+    res.status(404).json({ error: 'Student not found' });
+    return;
+  }
+
+  res.json({ id: student.id });
+});
+
+app.get('/api/users/uuid-by-email', async (req, res) => {
+  const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+
+  if (!email) {
+    res.status(400).json({ error: 'email is required' });
+    return;
+  }
+
+  const student = await prisma.user.findFirst({
+    where: { email, role: 'STUDENT' },
+    select: { id: true }
+  });
+
+  if (!student) {
+    res.status(404).json({ error: 'Student not found' });
+    return;
+  }
+
+  res.json({ id: student.id });
+});
 
 app.get('/', (req, res) => {
   res.json({ message: 'Backend is running' });

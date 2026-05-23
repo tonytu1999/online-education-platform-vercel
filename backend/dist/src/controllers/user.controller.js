@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bindChild = exports.getProfile = void 0;
+exports.bindChild = exports.getStudentUuidByEmail = exports.getProfile = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const getProfile = async (req, res) => {
     try {
@@ -18,6 +18,28 @@ const getProfile = async (req, res) => {
     }
 };
 exports.getProfile = getProfile;
+const getStudentUuidByEmail = async (req, res) => {
+    try {
+        const email = typeof req.query.email === 'string' ? req.query.email.trim() : '';
+        if (!email) {
+            res.status(400).json({ error: 'email is required' });
+            return;
+        }
+        const student = await prisma_1.default.user.findFirst({
+            where: { email, role: 'STUDENT' },
+            select: { id: true }
+        });
+        if (!student) {
+            res.status(404).json({ error: 'Student not found' });
+            return;
+        }
+        res.json({ id: student.id });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get student uuid' });
+    }
+};
+exports.getStudentUuidByEmail = getStudentUuidByEmail;
 const bindChild = async (req, res) => {
     try {
         if (req.user?.role !== 'PARENT') {
