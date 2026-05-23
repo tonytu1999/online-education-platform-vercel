@@ -17,8 +17,11 @@ import { ViewClassDetail } from './views/ClassDetail';
 import { ViewStudentDetail } from './views/StudentDetail';
 import { ViewStudents } from './views/Students';
 import { ViewMentalHealth } from './views/MentalHealth';
+import { ViewLogin } from './views/Login';
 
 const ACCENT = '#2f5cff';
+
+interface AuthUser { id: number; name: string; role: string; }
 
 export function App() {
   const [lang, setLangState] = useState<Lang>('en');
@@ -26,6 +29,9 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
+    try { return JSON.parse(localStorage.getItem('lumen_user') || 'null'); } catch { return null; }
+  });
 
   useLang();
 
@@ -40,7 +46,17 @@ export function App() {
     root.style.setProperty('--accent-strong', hexToSoft(ACCENT, 0.22));
   }, []);
 
-  const profile: UserProfile = { name: 'Chen Wei', role: t('Mathematics · Grade 7–8') };
+  function handleLogin(token: string, user: AuthUser) {
+    localStorage.setItem('lumen_token', token);
+    localStorage.setItem('lumen_user', JSON.stringify(user));
+    setAuthUser(user);
+  }
+
+  if (!authUser) {
+    return <ViewLogin onLogin={handleLogin} />;
+  }
+
+  const profile: UserProfile = { name: authUser.name, role: t('Mathematics · Grade 7–8') };
 
   const classes = CLASSES_TEACHER;
   const klass = nav.classId ? classes.find((c) => c.id === nav.classId) : undefined;
