@@ -37,7 +37,6 @@ const chat = async (req, res) => {
 };
 exports.chat = chat;
 const checkMentalHealth = async (req, res) => {
-    // Placeholder based on PRD: "?�u?�ũΥe���"
     res.json({ emotionPolarity: 'NEUTRAL', riskLevel: 'LOW', keywords: 'none' });
 };
 exports.checkMentalHealth = checkMentalHealth;
