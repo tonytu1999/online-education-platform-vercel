@@ -1,0 +1,476 @@
+{
+  "subject": "英语",
+  "level": "小一至小六",
+  "document_type": "课程指引",
+  "description": "英语课程指引（小一至小六）",
+  "curriculum_framework": {
+    "aims": [
+      "培养学生的英语语言能力",
+      "培养英语学习兴趣",
+      "发展跨文化交际能力",
+      "培养终身学习能力"
+    ],
+    "organizing_principles": [
+      "听说领先，读写跟上",
+      "循序渐进，螺旋上升",
+      "注重实践，强调应用",
+      "培养能力，全面发展"
+    ]
+  },
+  "stages": [
+    {
+      "stage": "小一",
+      "focus": "培养英语兴趣和基础能力",
+      "units": [
+        {
+          "unit": "Greetings and Introductions",
+          "objectives": [
+            "学会基本的问候语",
+            "能够简单介绍自己",
+            "培养开口说英语的信心",
+            "建立英语学习的兴趣"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["问候语", "姓名", "年龄", "国籍"],
+            "expressions": ["Hello", "Good morning", "My name is...", "I am..."],
+            "structures": ["简单句", "疑问句", "回答句"],
+            "phonics": ["字母发音", "拼读规则"]
+          },
+          "assessment_methods": [
+            "口语表达",
+            "角色扮演",
+            "听力理解",
+            "字母识别"
+          ],
+          "key_skills": [
+            "听力理解",
+            "口语表达",
+            "字母识别",
+            "拼读能力"
+          ]
+        },
+        {
+          "unit": "Family and Friends",
+          "objectives": [
+            "学会介绍家庭成员",
+            "能够描述朋友特征",
+            "培养人际交往能力",
+            "发展语言表达能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["家庭成员", "朋友", "描述词"],
+            "expressions": ["This is...", "He/She is...", "I have..."],
+            "structures": ["名词单复数", "形容词用法"],
+            "functions": ["介绍", "描述", "询问"]
+          },
+          "assessment_methods": [
+            "家庭介绍",
+            "朋友描述",
+            "对话练习",
+            "单词拼写"
+          ],
+          "key_skills": [
+            "词汇运用",
+            "句型操练",
+            "口语表达",
+            "听力理解"
+          ]
+        },
+        {
+          "unit": "School Life",
+          "objectives": [
+            "学会描述学校生活",
+            "能够表达喜好",
+            "培养学习兴趣",
+            "发展语言运用能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["学校设施", "科目", "活动"],
+            "expressions": ["I like...", "I go to...", "This is..."],
+            "structures": ["动词现在时", "介词用法"],
+            "functions": ["描述", "表达喜好", "日常交流"]
+          },
+          "assessment_methods": [
+            "学校介绍",
+            "喜好表达",
+            "对话练习",
+            "阅读理解"
+          ],
+          "key_skills": [
+            "词汇运用",
+            "句型操练",
+            "阅读理解",
+            "口语表达"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "培养英语学习兴趣",
+        "建立基础词汇量",
+        "掌握基本句型",
+        "发展听说能力"
+      ]
+    },
+    {
+      "stage": "小二",
+      "focus": "扩展语言能力和应用范围",
+      "units": [
+        {
+          "unit": "Daily Routines",
+          "objectives": [
+            "能够描述日常生活",
+            "掌握时间表达",
+            "培养时间管理意识",
+            "发展语言表达能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["日常活动", "时间", "频率"],
+            "expressions": ["I get up at...", "I go to school...", "I do..."],
+            "structures": ["一般现在时", "时间状语", "频率副词"],
+            "functions": ["描述日常", "表达习惯", "询问时间"]
+          },
+          "assessment_methods": [
+            "日常描述",
+            "时间对话",
+            "写作练习",
+            "角色扮演"
+          ],
+          "key_skills": [
+            "时间表达",
+            "句型运用",
+            "写作能力",
+            "口语表达"
+          ]
+        },
+        {
+          "unit": "Hobbies and Interests",
+          "objectives": [
+            "能够表达兴趣爱好",
+            "描述活动内容",
+            "培养个人特长",
+            "发展语言交流能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["兴趣爱好", "活动", "运动"],
+            "expressions": ["I like...", "I enjoy...", "I can..."],
+            "structures": ["动词ing形式", "情态动词", "连接词"],
+            "functions": ["表达喜好", "描述能力", "邀请参与"]
+          },
+          "assessment_methods": [
+            "兴趣介绍",
+            "能力描述",
+            "对话练习",
+            "海报制作"
+          ],
+          "key_skills": [
+            "词汇扩展",
+            "句型运用",
+            "口语表达",
+            "创意写作"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "扩展词汇量",
+        "掌握基本语法",
+        "提高听说能力",
+        "培养阅读兴趣"
+      ]
+    },
+    {
+      "stage": "小三",
+      "focus": "提高语言综合能力",
+      "units": [
+        {
+          "unit": "Food and Drinks",
+          "objectives": [
+            "学会描述食物",
+            "表达饮食偏好",
+            "培养健康饮食意识",
+            "发展语言运用能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["食物", "饮料", "口味"],
+            "expressions": ["I like...", "I want...", "Would you like...?"],
+            "structures": ["名词复数", "可数不可数", "some/any"],
+            "functions": ["点餐", "描述食物", "表达喜好"]
+          },
+          "assessment_methods": [
+            "菜单设计",
+            "角色扮演",
+            "写作练习",
+            "口头报告"
+          ],
+          "key_skills": [
+            "词汇运用",
+            "句型操练",
+            "口语表达",
+            "写作能力"
+          ]
+        },
+        {
+          "unit": "Weather and Seasons",
+          "objectives": [
+            "学会描述天气",
+            "表达季节特征",
+            "培养观察能力",
+            "发展语言交流能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["天气", "季节", "自然现象"],
+            "expressions": ["It is...", "I like...", "When it..."],
+            "structures": ["天气表达", "条件句", "because"],
+            "functions": ["描述天气", "表达感受", "讨论活动"]
+          },
+          "assessment_methods": [
+            "天气预报",
+            "季节描述",
+            "对话练习",
+            "海报制作"
+          ],
+          "key_skills": [
+            "词汇运用",
+            "句型操练",
+            "口语表达",
+            "创意写作"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "扩展词汇范围",
+        "掌握基本语法",
+        "提高听说能力",
+        "培养阅读习惯"
+      ]
+    },
+    {
+      "stage": "小四",
+      "focus": "深化语言能力和培养学习策略",
+      "units": [
+        {
+          "unit": "Holidays and Celebrations",
+          "objectives": [
+            "能够描述节日",
+            "表达节日感受",
+            "了解不同文化",
+            "发展跨文化交际能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["节日", "庆祝", "传统"],
+            "expressions": ["We celebrate...", "I enjoy...", "It is..."],
+            "structures": ["过去时", "节日表达", "文化介绍"],
+            "functions": ["描述节日", "分享经历", "文化交流"]
+          },
+          "assessment_methods": [
+            "节日报告",
+            "文化展示",
+            "写作练习",
+            "小组讨论"
+          ],
+          "key_skills": [
+            "词汇运用",
+            "语法应用",
+            "写作能力",
+            "口语表达"
+          ]
+        },
+        {
+          "unit": "Animals and Nature",
+          "objectives": [
+            "能够描述动物特征",
+            "表达对自然的看法",
+            "培养环保意识",
+            "发展语言表达能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["动物", "自然", "环境"],
+            "expressions": ["This animal...", "I think...", "We should..."],
+            "structures": ["形容词比较级", "情态动词", "表达观点"],
+            "functions": ["描述动物", "表达观点", "讨论环保"]
+          },
+          "assessment_methods": [
+            "动物介绍",
+            "环保讨论",
+            "写作练习",
+            "项目研究"
+          ],
+          "key_skills": [
+            "词汇扩展",
+            "语法应用",
+            "批判性思维",
+            "表达能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "深化词汇理解",
+        "掌握语法规则",
+        "提高读写能力",
+        "培养学习策略"
+      ]
+    },
+    {
+      "stage": "小五",
+      "focus": "提高语言应用能力和思维能力",
+      "units": [
+        {
+          "unit": "Travel and Transport",
+          "objectives": [
+            "能够描述旅行经历",
+            "讨论交通方式",
+            "培养全球视野",
+            "发展语言交流能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["旅行", "交通", "地点"],
+            "expressions": ["I went to...", "I traveled by...", "I saw..."],
+            "structures": ["过去时", "将来时", "交通表达"],
+            "functions": ["描述经历", "计划旅行", "询问信息"]
+          },
+          "assessment_methods": [
+            "旅行日记",
+            "交通调查",
+            "对话练习",
+            "海报制作"
+          ],
+          "key_skills": [
+            "时态运用",
+            "词汇扩展",
+            "写作能力",
+            "口语表达"
+          ]
+        },
+        {
+          "unit": "Health and Fitness",
+          "objectives": [
+            "能够描述健康状况",
+            "讨论健康话题",
+            "培养健康意识",
+            "发展语言运用能力"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["健康", "运动", "饮食"],
+            "expressions": ["I should...", "I need to...", "It is important to..."],
+            "structures": ["情态动词", "建议表达", "原因说明"],
+            "functions": ["给建议", "讨论健康", "表达观点"]
+          },
+          "assessment_methods": [
+            "健康计划",
+            "小组讨论",
+            "写作练习",
+            "口头报告"
+          ],
+          "key_skills": [
+            "建议表达",
+            "语法应用",
+            "批判性思维",
+            "表达能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "提高语言准确性",
+        "发展思维能力",
+        "培养学习策略",
+        "增强文化意识"
+      ]
+    },
+    {
+      "stage": "小六",
+      "focus": "综合语言能力培养和中学过渡",
+      "units": [
+        {
+          "unit": "School and Future",
+          "objectives": [
+            "能够描述学校生活",
+            "讨论未来计划",
+            "培养目标意识",
+            "为中学学习做准备"
+          ],
+          "knowledge_points": {
+            "vocabulary": ["学校", "未来", "计划"],
+            "expressions": ["I want to...", "I plan to...", "I hope to..."],
+            "structures": ["将来时", "目标表达", "条件句"],
+            "functions": ["表达愿望", "制定计划", "讨论未来"]
+          },
+          "assessment_methods": [
+            "未来规划",
+            "中学准备",
+            "写作练习",
+            "口头报告"
+          ],
+          "key_skills": [
+            "将来时运用",
+            "目标表达",
+            "写作能力",
+            "口语表达"
+          ]
+        },
+        {
+          "unit": "Review and Progress",
+          "objectives": [
+            "复习小学所学内容",
+            "总结学习成果",
+            "培养反思能力",
+            "为中学学习奠定基础"
+          ],
+          "knowledge_points": {
+            "review": ["小学核心词汇", "基本句型", "语法要点"],
+            "skills": ["听说读写", "语言运用", "学习策略"],
+            "reflection": ["学习成果", "进步空间", "未来目标"]
+          },
+          "assessment_methods": [
+            "综合测试",
+            "学习档案",
+            "自我评估",
+            "展示活动"
+          ],
+          "key_skills": [
+            "综合运用",
+            "自主学习",
+            "反思能力",
+            "展示能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "综合语言能力",
+        "自主学习能力",
+        "反思能力",
+        "中学过渡准备"
+      ]
+    }
+  ],
+  "general_objectives": [
+    "培养学生的英语语言能力",
+    "培养学生的英语学习兴趣",
+    "培养学生的跨文化交际能力",
+    "培养学生的终身学习能力"
+  ],
+  "assessment_framework": {
+    "continuous_assessment": {
+      "weighting": 40,
+      "components": [
+        "课堂参与",
+        "作业完成",
+        "口语表达",
+        "小组合作"
+      ]
+    },
+    "summative_assessment": {
+      "weighting": 60,
+      "components": [
+        "单元测验",
+        "期中期末考试",
+        "口语测试",
+        "写作评估"
+      ]
+    }
+  },
+  "learning_targets": {
+    "listening": "能够听懂简单的英语对话",
+    "speaking": "能够进行简单的英语交流",
+    "reading": "能够阅读简单的英语文章",
+    "writing": "能够写出简单的英语句子"
+  }
+}

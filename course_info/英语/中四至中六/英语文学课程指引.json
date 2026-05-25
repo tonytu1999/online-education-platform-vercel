@@ -1,0 +1,467 @@
+{
+  "subject": "文学",
+  "level": "中四至中六",
+  "document_type": "课程指引",
+  "description": "英语文学课程指引（中四至中六）",
+  "curriculum_overview": {
+    "aims": [
+      "培养学生的文学鉴赏能力",
+      "培养学生的批判性思维能力",
+      "培养学生的文学分析能力",
+      "培养学生的人文素养"
+    ],
+    "focus": "通过文学作品培养学生的语言能力和人文素养",
+    "assessment_weighting": {
+      "public_exam": 70,
+      "school_based": 30
+    }
+  },
+  "curriculum_structure": {
+    "organizing_principles": [
+      "主题式学习",
+      "历史发展脉络",
+      "文体分类",
+      "文化多样性"
+    ],
+    "progression": {
+      "中四": "文学基础和欣赏",
+      "中五": "文学分析和比较",
+      "中六": "文学研究和创作"
+    }
+  },
+  "stages": [
+    {
+      "stage": "中四",
+      "focus": "文学基础和欣赏",
+      "units": [
+        {
+          "unit": "Introduction to Literary Study",
+          "objectives": [
+            "理解文学的基本概念",
+            "掌握文学分析方法",
+            "培养文学欣赏能力",
+            "建立文学学习基础"
+          ],
+          "knowledge_points": {
+            "literary_concepts": ["文学的定义", "文学的功能", "文学价值", "文学分类"],
+            "literary_elements": ["情节", "人物", "主题", "背景", "视角", "语言"],
+            "critical_approaches": ["形式主义", "历史批评", "心理分析", "女性主义"],
+            "study_skills": ["阅读方法", "笔记技巧", "分析方法", "讨论技巧"]
+          },
+          "assessment_methods": [
+            "文学概念测试",
+            "文本分析",
+            "文学评论",
+            "课堂参与"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "文学知识",
+            "分析能力",
+            "欣赏能力",
+            "学习方法"
+          ]
+        },
+        {
+          "unit": "Poetry",
+          "objectives": [
+            "理解诗歌的基本特征",
+            "掌握诗歌分析方法",
+            "欣赏诗歌艺术",
+            "培养审美能力"
+          ],
+          "knowledge_points": {
+            "poetic_forms": ["抒情诗", "叙事诗", "十四行诗", "自由诗"],
+            "poetic_elements": ["意象", "象征", "比喻", "韵律", "节奏", "音韵"],
+            "poetic_themes": ["爱情", "自然", "人生", "社会", "文化"],
+            "poetic_analysis": ["主题分析", "形式分析", "语言分析", "文化分析"]
+          },
+          "assessment_methods": [
+            "诗歌分析",
+            "比较讨论",
+            "诗歌朗诵",
+            "文学评论"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "文学分析",
+            "审美能力",
+            "语言能力",
+            "表达能力"
+          ]
+        },
+        {
+          "unit": "Short Stories",
+          "objectives": [
+            "理解短篇小说的特点",
+            "掌握小说分析方法",
+            "欣赏小说艺术",
+            "培养批判性思维"
+          ],
+          "knowledge_points": {
+            "fiction_elements": ["情节", "人物", "主题", "背景", "视角", "象征"],
+            "narrative_techniques": ["叙事视角", "结构", "对话", "心理描写"],
+            "story_types": ["现实主义", "浪漫主义", "现代主义", "后现代主义"],
+            "critical_analysis": ["主题分析", "人物分析", "结构分析", "文化分析"]
+          },
+          "assessment_methods": [
+            "故事分析",
+            "人物分析",
+            "主题讨论",
+            "文学评论"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "文学分析",
+            "思维能力",
+            "语言能力",
+            "批判性思维"
+          ]
+        },
+        {
+          "unit": "Drama",
+          "objectives": [
+            "理解戏剧的基本特征",
+            "掌握戏剧分析方法",
+            "欣赏戏剧艺术",
+            "培养理解能力"
+          ],
+          "knowledge_points": {
+            "drama_elements": ["情节", "人物", "主题", "对话", "场景", "表演"],
+            "drama_types": ["悲剧", "喜剧", "历史剧", "现代剧"],
+            "drama_analysis": ["文本分析", "表演分析", "主题分析", "文化分析"],
+            "critical_perspectives": ["形式主义", "历史批评", "心理分析", "文化研究"]
+          },
+          "assessment_methods": [
+            "剧本分析",
+            "角色分析",
+            "主题讨论",
+            "文学评论"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "文学分析",
+            "理解能力",
+            "语言能力",
+            "表达能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "建立文学基础",
+        "培养欣赏能力",
+        "发展分析能力",
+        "学习方法策略"
+      ]
+    },
+    {
+      "stage": "中五",
+      "focus": "文学分析和比较",
+      "units": [
+        {
+          "unit": "Novels",
+          "objectives": [
+            "理解小说的艺术特点",
+            "掌握小说分析方法",
+            "进行文学比较",
+            "发展批判性思维"
+          ],
+          "knowledge_points": {
+            "novel_types": ["现实主义", "浪漫主义", "现代主义", "后现代主义"],
+            "novel_elements": ["情节", "人物", "主题", "背景", "视角", "语言"],
+            "narrative_techniques": ["叙事视角", "结构", "对话", "心理描写"],
+            "comparative_analysis": ["主题比较", "风格比较", "文化比较", "历史比较"]
+          },
+          "assessment_methods": [
+            "小说分析",
+            "比较讨论",
+            "主题论文",
+            "文学评论"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "文学分析",
+            "比较能力",
+            "思维能力",
+            "写作能力"
+          ]
+        },
+        {
+          "unit": "Literary Themes and Movements",
+          "objectives": [
+            "理解文学发展历史",
+            "掌握文学流派特点",
+            "分析主题演变",
+            "培养历史意识"
+          ],
+          "knowledge_points": {
+            "historical_context": ["文学史", "社会背景", "文化影响", "历史发展"],
+            "literary_movements": ["古典主义", "浪漫主义", "现实主义", "现代主义", "后现代主义"],
+            "thematic_development": ["主题演变", "文化变迁", "价值观变化", "社会反映"],
+            "critical_theory": ["形式主义", "结构主义", "解构主义", "后殖民主义"]
+          },
+          "assessment_methods": [
+            "主题分析",
+            "运动研究",
+            "历史背景分析",
+            "理论应用"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "文学知识",
+            "分析能力",
+            "历史思维",
+            "理论应用"
+          ]
+        },
+        {
+          "unit": "Critical Perspectives",
+          "objectives": [
+            "掌握不同批评理论",
+            "应用批评方法",
+            "进行多元解读",
+            "发展批判性思维"
+          ],
+          "knowledge_points": {
+            "critical_theories": ["形式主义", "历史批评", "心理分析", "女性主义", "马克思主义", "后殖民主义"],
+            "critical_methods": ["文本分析", "语境分析", "理论应用", "多元解读"],
+            "critical_thinking": ["分析", "评价", "综合", "创造"],
+            "theoretical_application": ["理论应用", "文本分析", "观点论证", "评价反思"]
+          },
+          "assessment_methods": [
+            "理论应用",
+            "文本分析",
+            "观点论证",
+            "批评论文"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "理论应用",
+            "分析能力",
+            "思维能力",
+            "写作能力"
+          ]
+        },
+        {
+          "unit": "World Literature",
+          "objectives": [
+            "理解世界文学多样性",
+            "比较不同文化文学",
+            "培养跨文化理解",
+            "发展全球视野"
+          ],
+          "knowledge_points": {
+            "cultural_diversity": ["不同文化", "文学传统", "文化差异", "文化交流"],
+            "regional_literatures": ["亚洲文学", "欧洲文学", "美洲文学", "非洲文学"],
+            "comparative_literature": ["主题比较", "风格比较", "文化比较", "历史比较"],
+            "global_perspectives": ["全球视野", "文化理解", "跨文化交际", "国际意识"]
+          },
+          "assessment_methods": [
+            "文学比较",
+            "文化分析",
+            "主题讨论",
+            "研究论文"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "比较能力",
+            "文化理解",
+            "分析能力",
+            "全球视野"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "深化文学分析",
+        "培养比较思维",
+        "应用批评理论",
+        "拓展文化视野"
+      ]
+    },
+    {
+      "stage": "中六",
+      "focus": "文学研究和创作",
+      "units": [
+        {
+          "unit": "Advanced Literary Studies",
+          "objectives": [
+            "进行深入研究",
+            "掌握研究方法",
+            "培养学术能力",
+            "展现研究成果"
+          ],
+          "knowledge_points": {
+            "research_methods": ["文献综述", "文本分析", "理论应用", "方法选择"],
+            "academic_skills": ["研究设计", "资料搜集", "分析整理", "论文写作"],
+            "critical_thinking": ["问题分析", "逻辑推理", "观点论证", "评价反思"],
+            "presentation_skills": ["口头报告", "视觉辅助", "问答交流", "学术表达"]
+          },
+          "assessment_methods": [
+            "研究计划",
+            "学术论文",
+            "口头答辩",
+            "综合评估"
+          ],
+          "weighting": 30,
+          "key_competencies": [
+            "研究能力",
+            "学术能力",
+            "思维能力",
+            "表达能力"
+          ]
+        },
+        {
+          "unit": "Creative Writing and Adaptation",
+          "objectives": [
+            "培养创作能力",
+            "进行文学改编",
+            "发展创新思维",
+            "展现个人风格"
+          ],
+          "knowledge_points": {
+            "creative_writing": ["诗歌创作", "小说创作", "剧本创作", "散文创作"],
+            "adaptation": ["文学改编", "跨媒体改编", "文化改编", "创新改编"],
+            "writing_techniques": ["表达技巧", "结构设计", "人物塑造", "语言运用"],
+            "personal_style": ["个人风格", "创新表达", "艺术特色", "文化特色"]
+          },
+          "assessment_methods": [
+            "创作作品",
+            "改编项目",
+            "风格分析",
+            "展示活动"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "创作能力",
+            "创新能力",
+            "表达能力",
+            "艺术素养"
+          ]
+        },
+        {
+          "unit": "Literary Theory and Criticism",
+          "objectives": [
+            "掌握高级理论",
+            "进行文学批评",
+            "培养理论思维",
+            "发展学术能力"
+          ],
+          "knowledge_points": {
+            "advanced_theory": ["结构主义", "解构主义", "后殖民主义", "文化研究"],
+            "critical_practice": ["文本分析", "理论应用", "观点论证", "评价反思"],
+            "theoretical_debate": ["理论争议", "学术讨论", "观点比较", "理论发展"],
+            "academic_writing": ["论文写作", "文献引用", "学术规范", "表达技巧"]
+          },
+          "assessment_methods": [
+            "理论应用",
+            "批评论文",
+            "学术讨论",
+            "综合评估"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "理论应用",
+            "批评能力",
+            "思维能力",
+            "学术能力"
+          ]
+        },
+        {
+          "unit": "Capstone Project",
+          "objectives": [
+            "整合所学知识",
+            "完成研究项目",
+            "展现个人成就",
+            "为未来发展做准备"
+          ],
+          "knowledge_points": {
+            "project_planning": ["选题", "设计", "方法", "目标"],
+            "research_execution": ["资料搜集", "分析研究", "得出结论", "总结反思"],
+            "knowledge_integration": ["跨学科联系", "理论应用", "方法综合", "经验总结"],
+            "future_preparation": ["升学准备", "职业规划", "能力提升", "终身学习"]
+          },
+          "assessment_methods": [
+            "研究项目",
+            "学术论文",
+            "口头答辩",
+            "综合评估"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "综合能力",
+            "研究能力",
+            "表达能力",
+            "规划能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "培养研究能力",
+        "发展创作能力",
+        "掌握理论方法",
+        "准备未来发展"
+      ]
+    }
+  ],
+  "general_objectives": [
+    "培养学生的文学鉴赏能力",
+    "培养学生的批判性思维能力",
+    "培养学生的文学分析能力",
+    "培养学生的人文素养"
+  ],
+  "assessment_framework": {
+    "public_exam": {
+      "weighting": 70,
+      "components": [
+        {
+          "component": "Paper 1",
+          "weighting": 25,
+          "description": "必答题"
+        },
+        {
+          "component": "Paper 2A",
+          "weighting": 20,
+          "description": "散文题"
+        },
+        {
+          "component": "Paper 2B",
+          "weighting": 25,
+          "description": "诗歌题"
+        }
+      ]
+    },
+    "school_based": {
+      "weighting": 30,
+      "components": [
+        {
+          "component": "课堂参与",
+          "weighting": 5,
+          "description": "课堂表现和讨论"
+        },
+        {
+          "component": "作业",
+          "weighting": 10,
+          "description": "作业完成质量"
+        },
+        {
+          "component": "项目",
+          "weighting": 15,
+          "description": "专题研究和创作"
+        }
+      ]
+    }
+  },
+  "learning_targets": {
+    "literary_knowledge": "掌握文学知识和理论",
+    "analytical_skills": "培养文学分析能力",
+    "critical_thinking": "发展批判性思维",
+    "creative_ability": "培养创作能力"
+  },
+  "competencies": [
+    "文学分析",
+    "批判性思维",
+    "研究能力",
+    "创作能力",
+    "学术能力"
+  ]
+}

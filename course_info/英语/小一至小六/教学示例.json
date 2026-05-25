@@ -1,0 +1,387 @@
+{
+  "subject": "英语",
+  "level": "小一至小六",
+  "document_type": "教学示例",
+  "description": "英语课程教学示例",
+  "teaching_principles": [
+    "以学生为中心",
+    "注重实际应用",
+    "创造语言环境",
+    "培养学习兴趣"
+  ],
+  "sample_lessons": [
+    {
+      "level": "小一",
+      "unit": "Greetings and Introductions",
+      "lesson": "Hello, My Name Is...",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够使用基本的问候语",
+        "学生能够介绍自己的名字",
+        "学生能够进行简单的自我介绍"
+      ],
+      "materials": [
+        "闪卡（问候语）",
+        "人物图片",
+        "录音机",
+        "奖励贴纸"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "唱英文歌曲 'Hello, Hello'",
+          "interaction": "全班一起唱"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "展示问候语和自我介绍的表达",
+          "interaction": "教师示范，学生跟读"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "两人一组练习问候和自我介绍",
+          "interaction": "小组练习"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "学生轮流进行自我介绍",
+          "interaction": "个人展示"
+        }
+      ],
+      "assessment": [
+        "观察学生参与度",
+        "检查发音准确性",
+        "评价表达流利度"
+      ],
+      "differentiation": {
+        "support": [
+          "提供图片辅助",
+          "给予更多示范",
+          "降低语速"
+        ],
+        "extension": [
+          "增加对话长度",
+          "介绍更多问候语",
+          "加入简单问题"
+        ]
+      }
+    },
+    {
+      "level": "小二",
+      "unit": "Daily Routines",
+      "lesson": "My Day",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够描述日常活动",
+        "学生能够使用时间表达",
+        "学生能够谈论自己的日常安排"
+      ],
+      "materials": [
+        "时间表图片",
+        "日常活动卡片",
+        "白板",
+        "彩色笔"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "复习日常活动词汇",
+          "interaction": "快速闪卡游戏"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "介绍时间表达和句型",
+          "interaction": "教师展示时间表，示范表达"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "制作个人时间表",
+          "interaction": "个人制作，小组分享"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "介绍自己的日常安排",
+          "interaction": "口头报告"
+        }
+      ],
+      "assessment": [
+        "检查时间表制作",
+        "评价表达准确性",
+        "观察词汇运用"
+      ],
+      "resources": [
+        "时间表模板",
+        "活动图片",
+        "参考句型"
+      ]
+    },
+    {
+      "level": "小三",
+      "unit": "Food and Drinks",
+      "lesson": "My Favorite Food",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够表达食物喜好",
+        "学生能够描述食物特征",
+        "学生能够进行简单的点餐对话"
+      ],
+      "materials": [
+        "食物图片",
+        "菜单",
+        "角色扮演道具",
+        "投票卡片"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "猜谜游戏 - 猜食物",
+          "interaction": "全班参与"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "介绍食物词汇和表达喜好的句型",
+          "interaction": "教师展示，学生跟读"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "制作'我最喜欢的食物'海报",
+          "interaction": "个人制作，小组分享"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "餐厅点餐角色扮演",
+          "interaction": "两两对话"
+        }
+      ],
+      "assessment": [
+        "海报制作质量",
+        "对话表现",
+        "词汇掌握情况"
+      ],
+      "integration": {
+        "cross_curricular": ["美术", "数学"],
+        "life_skills": ["健康饮食", "礼貌用语"]
+      }
+    },
+    {
+      "level": "小四",
+      "unit": "Holidays and Celebrations",
+      "lesson": "Chinese New Year",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够描述春节活动",
+        "学生能够表达节日感受",
+        "学生能够了解不同文化"
+      ],
+      "materials": [
+        "春节图片",
+        "传统习俗视频",
+        "文化对比图表",
+        "制作材料"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "春节词汇快闪",
+          "interaction": "全班快速反应"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "介绍春节习俗和庆祝活动",
+          "interaction": "视频观看，讨论"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "制作春节习俗卡片",
+          "interaction": "小组合作"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "介绍春节习俗",
+          "interaction": "口头报告"
+        }
+      ],
+      "assessment": [
+        "文化理解程度",
+        "表达能力",
+        "合作表现"
+      ],
+      "cultural_elements": [
+        "传统习俗",
+        "节日象征",
+        "文化价值"
+      ]
+    },
+    {
+      "level": "小五",
+      "unit": "Travel and Transport",
+      "lesson": "My Dream Trip",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够描述旅行地点",
+        "学生能够讨论交通方式",
+        "学生能够表达旅行愿望"
+      ],
+      "materials": [
+        "世界地图",
+        "交通工具图片",
+        "旅行计划表",
+        "多媒体资源"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "猜地点游戏",
+          "interaction": "全班参与"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "介绍旅行词汇和交通方式",
+          "interaction": "地图展示，词汇学习"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "制定旅行计划",
+          "interaction": "小组合作"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "介绍梦想旅行",
+          "interaction": "个人展示"
+        }
+      ],
+      "assessment": [
+        "计划合理性",
+        "语言准确性",
+        "创意表现"
+      ],
+      "skills_development": [
+        "研究能力",
+        "合作能力",
+        "表达能力"
+      ]
+    },
+    {
+      "level": "小六",
+      "unit": "School and Future",
+      "lesson": "My Future Plan",
+      "duration": "40分钟",
+      "objectives": [
+        "学生能够表达未来愿望",
+        "学生能够讨论中学准备",
+        "学生能够制定学习目标"
+      ],
+      "materials": [
+        "目标计划表",
+        "中学图片",
+        "成功案例",
+        "反思表格"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "activity": "Warm-up",
+          "time": "5分钟",
+          "description": "讨论'成功是什么'",
+          "interaction": "小组讨论"
+        },
+        {
+          "step": 2,
+          "activity": "Presentation",
+          "time": "10分钟",
+          "description": "介绍目标设定和未来规划",
+          "interaction": "案例分析，讨论"
+        },
+        {
+          "step": 3,
+          "activity": "Practice",
+          "time": "15分钟",
+          "description": "制定个人学习目标",
+          "interaction": "个人制定，同伴分享"
+        },
+        {
+          "step": 4,
+          "activity": "Production",
+          "time": "10分钟",
+          "description": "分享未来规划",
+          "interaction": "口头报告"
+        }
+      ],
+      "assessment": [
+        "目标合理性",
+        "表达清晰度",
+        "反思深度"
+      ],
+      "preparation_for_secondary": [
+        "学习策略",
+        "时间管理",
+        "自我管理"
+      ]
+    }
+  ],
+  "teaching_strategies": {
+    "communicative_approach": {
+      "principle": "强调实际交流",
+      "methods": ["情景对话", "角色扮演", "信息差活动"]
+    },
+    "task_based_learning": {
+      "principle": "通过任务学习",
+      "methods": ["项目学习", "问题解决", "合作任务"]
+    },
+    "differentiated_instruction": {
+      "principle": "因材施教",
+      "methods": ["分层任务", "多元评价", "个性化支持"]
+    }
+  },
+  "resources": {
+    "visual_aids": ["图片", "图表", "思维导图"],
+    "audio_materials": ["录音", "歌曲", "视频"],
+    "manipulatives": ["卡片", "实物", "模型"]
+  },
+  "assessment_tools": [
+    "观察量表",
+    "口语检查表",
+    "作品评估",
+    "自评互评表"
+  ]
+}

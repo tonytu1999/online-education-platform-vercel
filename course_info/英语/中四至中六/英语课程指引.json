@@ -1,0 +1,470 @@
+{
+  "subject": "英语",
+  "level": "中四至中六",
+  "document_type": "课程指引",
+  "description": "英语课程指引（中四至中六）",
+  "curriculum_overview": {
+    "aims": [
+      "培养学生的英语语言能力",
+      "培养学生的批判性思维能力",
+      "培养学生的跨文化交际能力",
+      "培养学生的自主学习能力"
+    ],
+    "assessment_weighting": {
+      "public_exam": 80,
+      "school_based": 20
+    }
+  },
+  "curriculum_structure": {
+    "core_components": [
+      "语言知识",
+      "语言技能",
+      "学习策略",
+      "文化意识"
+    ],
+    "elective_options": [
+      "英语文学",
+      "英语应用"
+    ],
+    "progression": {
+      "中四": "基础巩固和能力培养",
+      "中五": "能力提升和拓展",
+      "中六": "综合应用和准备"
+    }
+  },
+  "stages": [
+    {
+      "stage": "中四",
+      "focus": "基础巩固和能力培养",
+      "units": [
+        {
+          "unit": "Language in Context",
+          "objectives": [
+            "理解语言在社会中的作用",
+            "分析语言使用情境",
+            "提高语言运用能力",
+            "培养语言意识"
+          ],
+          "knowledge_points": {
+            "language_features": ["语言功能", "语域", "语体", "语境"],
+            "language_analysis": ["文本分析", "语言特征", "修辞手法", "文体分析"],
+            "language_use": ["语言选择", "交际策略", "语用规则", "文化因素"],
+            "language_skills": ["阅读技巧", "写作技巧", "口语技巧", "听力技巧"]
+          },
+          "assessment_methods": [
+            "文本分析",
+            "语言运用",
+            "情境对话",
+            "综合测试"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "语言能力",
+            "分析能力",
+            "交际能力",
+            "思维能力"
+          ]
+        },
+        {
+          "unit": "Personal Growth and Development",
+          "objectives": [
+            "探讨个人发展主题",
+            "表达个人观点",
+            "培养自我认知",
+            "发展语言表达能力"
+          ],
+          "knowledge_points": {
+            "themes": ["身份认同", "个人成长", "价值观", "目标设定"],
+            "language_focus": ["论述文写作", "观点表达", "论证技巧", "逻辑结构"],
+            "vocabulary": ["发展词汇", "情感词汇", "抽象词汇", "连接词"],
+            "grammar": ["复杂句", "非谓语动词", "虚拟语气", "连接词"]
+          },
+          "assessment_methods": [
+            "论述文写作",
+            "观点讨论",
+            "反思日志",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "写作能力",
+            "思维能力",
+            "语言能力",
+            "自我认知"
+          ]
+        },
+        {
+          "unit": "Social Issues and Values",
+          "objectives": [
+            "讨论社会问题",
+            "分析价值观",
+            "培养社会责任感",
+            "发展批判性思维"
+          ],
+          "knowledge_points": {
+            "topics": ["教育", "环境", "科技", "文化"],
+            "language_focus": ["议论文写作", "分析讨论", "评价", "建议"],
+            "vocabulary": ["社会词汇", "分析词汇", "评价词汇", "建议词汇"],
+            "grammar": ["复杂句", "非谓语动词", "被动语态", "虚拟语气"]
+          },
+          "assessment_methods": [
+            "社会讨论",
+            "分析写作",
+            "观点表达",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "语言能力",
+            "思维能力",
+            "社会意识",
+            "批判性思维"
+          ]
+        },
+        {
+          "unit": "Culture and Heritage",
+          "objectives": [
+            "探索文化多样性",
+            "理解文化传承",
+            "培养文化自信",
+            "发展跨文化交际能力"
+          ],
+          "knowledge_points": {
+            "themes": ["文化传统", "文化交流", "身份认同", "价值观念"],
+            "language_focus": ["文化描述", "比较分析", "评价讨论", "文化表达"],
+            "vocabulary": ["文化词汇", "比较词汇", "分析词汇", "评价词汇"],
+            "grammar": ["比较结构", "关系从句", "非谓语动词", "虚拟语气"]
+          },
+          "assessment_methods": [
+            "文化介绍",
+            "比较分析",
+            "文化讨论",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "语言能力",
+            "思维能力",
+            "文化意识",
+            "交际能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "巩固语言基础",
+        "提高语言能力",
+        "培养批判性思维",
+        "增强文化意识"
+      ]
+    },
+    {
+      "stage": "中五",
+      "focus": "能力提升和专题拓展",
+      "units": [
+        {
+          "unit": "Critical Thinking and Reasoning",
+          "objectives": [
+            "培养批判性思维能力",
+            "发展逻辑推理能力",
+            "分析复杂问题",
+            "形成独立观点"
+          ],
+          "knowledge_points": {
+            "thinking_skills": ["分析", "评价", "推理", "创造"],
+            "language_focus": ["议论文写作", "逻辑论证", "批判分析", "观点表达"],
+            "vocabulary": ["思维词汇", "逻辑词汇", "分析词汇", "评价词汇"],
+            "grammar": ["复杂句", "逻辑连接词", "非谓语动词", "虚拟语气"]
+          },
+          "assessment_methods": [
+            "逻辑分析",
+            "批判性写作",
+            "观点辩论",
+            "综合测试"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "思维能力",
+            "语言能力",
+            "分析能力",
+            "批判性思维"
+          ]
+        },
+        {
+          "unit": "Media and Information Literacy",
+          "objectives": [
+            "分析媒体信息",
+            "评估信息可靠性",
+            "培养媒介素养",
+            "发展批判性思维"
+          ],
+          "knowledge_points": {
+            "media_concepts": ["媒体类型", "信息传播", "媒体影响", "媒介素养"],
+            "language_focus": ["媒体分析", "信息评估", "观点表达", "批判讨论"],
+            "vocabulary": ["媒体词汇", "分析词汇", "评价词汇", "批判词汇"],
+            "grammar": ["复杂句", "非谓语动词", "被动语态", "虚拟语气"]
+          },
+          "assessment_methods": [
+            "媒体分析",
+            "信息评估",
+            "观点讨论",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "分析能力",
+            "思维能力",
+            "媒介素养",
+            "语言能力"
+          ]
+        },
+        {
+          "unit": "Global Perspectives",
+          "objectives": [
+            "理解全球议题",
+            "分析国际视角",
+            "培养全球意识",
+            "发展跨文化交际能力"
+          ],
+          "knowledge_points": {
+            "global_issues": ["全球化", "环境保护", "国际合作", "文化交流"],
+            "language_focus": ["全球分析", "视角比较", "观点表达", "建议提出"],
+            "vocabulary": ["全球词汇", "分析词汇", "比较词汇", "建议词汇"],
+            "grammar": ["复杂句", "比较结构", "虚拟语气", "非谓语动词"]
+          },
+          "assessment_methods": [
+            "全球讨论",
+            "视角分析",
+            "观点表达",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "思维能力",
+            "语言能力",
+            "全球意识",
+            "跨文化交际"
+          ]
+        },
+        {
+          "unit": "Literature and Human Experience",
+          "objectives": [
+            "欣赏文学作品",
+            "理解人性主题",
+            "培养人文素养",
+            "发展批判性思维"
+          ],
+          "knowledge_points": {
+            "literature_themes": ["人性探索", "社会批判", "文化传承", "价值观念"],
+            "language_focus": ["文学分析", "主题探讨", "人物分析", "评价讨论"],
+            "vocabulary": ["文学词汇", "分析词汇", "评价词汇", "情感词汇"],
+            "grammar": ["复杂句", "修辞手法", "文学语言", "情感表达"]
+          },
+          "assessment_methods": [
+            "文学分析",
+            "主题讨论",
+            "人物分析",
+            "综合测试"
+          ],
+          "weighting": 20,
+          "key_competencies": [
+            "文学素养",
+            "思维能力",
+            "语言能力",
+            "人文关怀"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "提升思维能力",
+        "拓展知识视野",
+        "培养批判精神",
+        "发展人文素养"
+      ]
+    },
+    {
+      "stage": "中六",
+      "focus": "综合应用和准备未来",
+      "units": [
+        {
+          "unit": "Advanced Language Proficiency",
+          "objectives": [
+            "提高语言运用能力",
+            "掌握高级语言技巧",
+            "培养语言意识",
+            "为升学就业做准备"
+          ],
+          "knowledge_points": {
+            "language_mastery": ["高级词汇", "复杂句式", "修辞手法", "文体特征"],
+            "language_application": ["学术写作", "商务写作", "口语表达", "听力理解"],
+            "language_analysis": ["文本分析", "语言评估", "风格识别", "效果评价"],
+            "language_strategy": ["学习策略", "应试技巧", "语言规划", "能力提升"]
+          },
+          "assessment_methods": [
+            "高级写作",
+            "语言分析",
+            "口语展示",
+            "综合测试"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "语言能力",
+            "思维能力",
+            "学习能力",
+            "应用能力"
+          ]
+        },
+        {
+          "unit": "Independent Inquiry and Research",
+          "objectives": [
+            "培养研究能力",
+            "发展独立思考",
+            "掌握研究方法",
+            "完成专题研究"
+          ],
+          "knowledge_points": {
+            "research_skills": ["选题", "资料搜集", "数据分析", "结论总结"],
+            "language_focus": ["研究报告", "学术写作", "文献综述", "方法介绍"],
+            "critical_thinking": ["问题分析", "逻辑推理", "观点论证", "评价反思"],
+            "presentation_skills": ["口头报告", "视觉辅助", "问答交流", "表达技巧"]
+          },
+          "assessment_methods": [
+            "研究报告",
+            "学术论文",
+            "口头答辩",
+            "综合评估"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "研究能力",
+            "思维能力",
+            "写作能力",
+            "表达能力"
+          ]
+        },
+        {
+          "unit": "Preparation for Higher Education and Career",
+          "objectives": [
+            "为升学做准备",
+            "培养职业能力",
+            "规划未来发展",
+            "提升综合素养"
+          ],
+          "knowledge_points": {
+            "academic_preparation": ["大学要求", "专业选择", "学习规划", "能力提升"],
+            "career_development": ["职业规划", "技能培养", "求职技巧", "职业发展"],
+            "language_for_academic": ["学术英语", "专业词汇", "学习策略", "研究方法"],
+            "language_for_career": ["商务英语", "职场沟通", "专业写作", "演讲技巧"]
+          },
+          "assessment_methods": [
+            "升学规划",
+            "职业设计",
+            "语言测试",
+            "综合评估"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "规划能力",
+            "语言能力",
+            "思维能力",
+            "应用能力"
+          ]
+        },
+        {
+          "unit": "Synthesis and Integration",
+          "objectives": [
+            "整合所学知识",
+            "发展综合能力",
+            "培养创新思维",
+            "展现个人成长"
+          ],
+          "knowledge_points": {
+            "knowledge_integration": ["跨学科联系", "知识体系", "能力整合", "经验总结"],
+            "personal_development": ["学习反思", "能力提升", "目标设定", "发展规划"],
+            "global_citizenship": ["社会责任", "文化理解", "国际视野", "全球意识"],
+            "future_orientation": "终身学习, 适应变化, 创新发展"
+          },
+          "assessment_methods": [
+            "综合项目",
+            "反思报告",
+            "未来规划",
+            "综合评估"
+          ],
+          "weighting": 25,
+          "key_competencies": [
+            "综合能力",
+            "思维能力",
+            "创新能力",
+            "发展能力"
+          ]
+        }
+      ],
+      "learning_focus": [
+        "综合语言能力",
+        "研究能力",
+        "规划能力",
+        "创新能力"
+      ]
+    }
+  ],
+  "general_objectives": [
+    "培养学生的英语语言能力",
+    "培养学生的批判性思维能力",
+    "培养学生的跨文化交际能力",
+    "培养学生的自主学习能力"
+  ],
+  "assessment_framework": {
+    "public_exam": {
+      "weighting": 80,
+      "components": [
+        {
+          "component": "Paper 1",
+          "weighting": 30,
+          "description": "阅读理解"
+        },
+        {
+          "component": "Paper 2",
+          "weighting": 30,
+          "description": "写作"
+        },
+        {
+          "component": "Paper 3",
+          "weighting": 20,
+          "description": "英语运用"
+        }
+      ]
+    },
+    "school_based": {
+      "weighting": 20,
+      "components": [
+        {
+          "component": "课堂参与",
+          "weighting": 5,
+          "description": "课堂表现和讨论"
+        },
+        {
+          "component": "作业",
+          "weighting": 5,
+          "description": "作业完成质量"
+        },
+        {
+          "component": "项目",
+          "weighting": 10,
+          "description": "专题研究和展示"
+        }
+      ]
+    }
+  },
+  "learning_targets": {
+    "language_knowledge": "掌握高级语言知识和技能",
+    "language_skills": "熟练运用英语进行交流",
+    "critical_thinking": "培养批判性思维能力",
+    "global_perspectives": "培养全球视野和跨文化交际能力"
+  },
+  "competencies": [
+    "语言能力",
+    "思维能力",
+    "研究能力",
+    "学习能力",
+    "创新能力"
+  ]
+}

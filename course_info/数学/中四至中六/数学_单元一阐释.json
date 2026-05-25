@@ -1,0 +1,384 @@
+{
+  "subject": "数学",
+  "level": "中四至中六",
+  "document_type": "延伸单元阐释",
+  "description": "数学延伸部分（单元一）课程阐释",
+  "unit_overview": {
+    "title": "数学延伸部分（单元一）",
+    "focus": "微积分与解析几何",
+    "prerequisites": ["数学必修部分"],
+    "target_students": ["对数学有兴趣", "有意向修读大学理工科", "希望深化数学知识"]
+  },
+  "curriculum_structure": {
+    "organization": {
+      "themes": ["微积分", "解析几何", "数学建模"],
+      "approach": ["理论讲解", "问题解决", "应用拓展"]
+    },
+    "progression": {
+      "中四": "微积分基础",
+      "中五": "微积分进阶",
+      "中六": "专题研究"
+    }
+  },
+  "detailed_content": [
+    {
+      "theme": "微积分",
+      "description": "培养学生数学分析能力",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "极限理论",
+              "subtopics": [
+                "数列极限",
+                "函数极限",
+                "极限的运算法则",
+                "极限的应用"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解极限的概念",
+                "掌握极限的计算方法",
+                "能够应用极限解决问题"
+              ]
+            },
+            {
+              "topic": "导数",
+              "subtopics": [
+                "导数的定义",
+                "导数的运算法则",
+                "高阶导数",
+                "导数的应用"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解导数的概念",
+                "掌握导数的计算",
+                "能够应用导数解决问题"
+              ]
+            }
+          ],
+          "teaching_focus": "概念理解和基本技能"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "积分",
+              "subtopics": [
+                "不定积分",
+                "定积分",
+                "积分技巧",
+                "积分的应用"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解积分的概念",
+                "掌握积分的计算方法",
+                "能够应用积分解决问题"
+              ]
+            },
+            {
+              "topic": "微分方程",
+              "subtopics": [
+                "一阶微分方程",
+                "二阶微分方程",
+                "微分方程的应用"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解微分方程的概念",
+                "掌握微分方程的解法",
+                "能够应用微分方程建模"
+              ]
+            }
+          ],
+          "teaching_focus": "技能提升和应用"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "微积分专题",
+              "subtopics": [
+                "多重积分",
+                "曲线积分",
+                "曲面积分",
+                "级数"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解高级微积分概念",
+                "掌握高级微积分技巧",
+                "能够应用微积分解决复杂问题"
+              ]
+            }
+          ],
+          "teaching_focus": "深入研究和专题应用"
+        }
+      ]
+    },
+    {
+      "theme": "解析几何",
+      "description": "培养学生空间想象和几何直观",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "向量代数",
+              "subtopics": [
+                "向量的概念",
+                "向量的运算",
+                "向量的应用"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "理解向量的概念",
+                "掌握向量的运算",
+                "能够应用向量解决问题"
+              ]
+            },
+            {
+              "topic": "直线和圆",
+              "subtopics": [
+                "直线方程",
+                "圆的方程",
+                "位置关系"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "掌握直线和圆的方程",
+                "理解位置关系",
+                "能够解决几何问题"
+              ]
+            }
+          ],
+          "teaching_focus": "基础概念和技能"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "圆锥曲线",
+              "subtopics": [
+                "椭圆",
+                "双曲线",
+                "抛物线",
+                "圆锥曲线的性质"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解圆锥曲线的概念",
+                "掌握圆锥曲线的性质",
+                "能够解决圆锥曲线问题"
+              ]
+            },
+            {
+              "topic": "参数方程",
+              "subtopics": [
+                "参数方程的概念",
+                "参数方程的应用",
+                "极坐标"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "理解参数方程的概念",
+                "掌握参数方程的应用",
+                "能够使用极坐标"
+              ]
+            }
+          ],
+          "teaching_focus": "概念深化和应用"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "空间解析几何",
+              "subtopics": [
+                "空间直线",
+                "空间平面",
+                "空间曲面",
+                "空间几何问题"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解空间几何的概念",
+                "掌握空间几何的解法",
+                "能够解决空间几何问题"
+              ]
+            }
+          ],
+          "teaching_focus": "空间思维和综合应用"
+        }
+      ]
+    },
+    {
+      "theme": "数学建模",
+      "description": "培养学生数学建模能力",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "建模基础",
+              "subtopics": [
+                "数学模型的概念",
+                "建模的步骤",
+                "简单模型"
+              ],
+              "weighting": 5,
+              "objectives": [
+                "理解数学模型的概念",
+                "掌握建模的基本步骤",
+                "能够建立简单模型"
+              ]
+            }
+          ],
+          "teaching_focus": "建模思想培养"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "应用模型",
+              "subtopics": [
+                "优化模型",
+                "微分方程模型",
+                "概率模型"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "能够建立应用模型",
+                "掌握模型求解方法",
+                "能够解释模型结果"
+              ]
+            }
+          ],
+          "teaching_focus": "建模能力提升"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "专题建模",
+              "subtopics": [
+                "物理模型",
+                "经济模型",
+                "生物模型",
+                "社会模型"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "能够建立复杂模型",
+                "掌握高级建模技巧",
+                "能够进行模型评价"
+              ]
+            }
+          ],
+          "teaching_focus": "专题研究和创新"
+        }
+      ]
+    }
+  ],
+  "teaching_methodologies": {
+    "approaches": [
+      "探究式学习",
+      "问题导向教学",
+      "合作学习",
+      "项目学习"
+    ],
+    "strategies": [
+      "概念建构",
+      "技能训练",
+      "应用拓展",
+      "思维训练"
+    ],
+    "classroom_organization": [
+      "小组讨论",
+      "数学实验",
+      "项目研究",
+      "数学竞赛"
+    ]
+  },
+  "assessment_strategies": {
+    "continuous_assessment": {
+      "weighting": 30,
+      "components": [
+        {
+          "component": "课堂参与",
+          "weighting": 5,
+          "description": "课堂讨论、问题解决"
+        },
+        {
+          "component": "作业",
+          "weighting": 15,
+          "description": "练习、探究活动"
+        },
+        {
+          "component": "项目",
+          "weighting": 10,
+          "description": "数学建模项目"
+        }
+      ]
+    },
+    "public_exam": {
+      "weighting": 70,
+      "components": [
+        {
+          "component": "理论部分",
+          "weighting": 30,
+          "description": "概念理解和理论推导"
+        },
+        {
+          "component": "应用部分",
+          "weighting": 30,
+          "description": "问题解决和应用题"
+        },
+        {
+          "component": "探究部分",
+          "weighting": 10,
+          "description": "数学探究和建模"
+        }
+      ]
+    }
+  },
+  "learning_outcomes": {
+    "knowledge": [
+      "掌握微积分的基本概念",
+      "理解解析几何的基本原理",
+      "了解数学建模的基本方法"
+    ],
+    "skills": [
+      "发展数学分析能力",
+      "提高空间想象能力",
+      "培养数学建模能力"
+    ],
+    "applications": [
+      "能够应用数学知识解决问题",
+      "能够建立数学模型",
+      "能够进行数学探究"
+    ]
+  },
+  "resource_requirements": {
+    "textbooks": [
+      "数学延伸部分（单元一）教科书",
+      "微积分教材",
+      "解析几何教材",
+      "数学建模教材"
+    ],
+    "equipment": [
+      "图形计算器",
+      "数学软件",
+      "计算机",
+      "绘图工具"
+    ],
+    "technology": [
+      "数学软件（Mathematica, MATLAB）",
+      "图形计算器",
+      "在线学习平台"
+    ]
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "subject": "数学",
+  "level": "中四至中六",
+  "document_type": "延伸单元阐释",
+  "description": "数学延伸部分（单元二）课程阐释",
+  "unit_overview": {
+    "title": "数学延伸部分（单元二）",
+    "focus": "代数与统计",
+    "prerequisites": ["数学必修部分"],
+    "target_students": ["对代数和统计有兴趣", "有意向修读大学商科、社会科学", "希望深化数据分析能力"]
+  },
+  "curriculum_structure": {
+    "organization": {
+      "themes": ["代数与矩阵", "概率与统计", "数据科学"],
+      "approach": ["理论讲解", "数据分析", "应用实践"]
+    },
+    "progression": {
+      "中四": "代数和统计基础",
+      "中五": "进阶统计和概率",
+      "中六": "数据科学专题"
+    }
+  },
+  "detailed_content": [
+    {
+      "theme": "代数与矩阵",
+      "description": "培养学生抽象代数和矩阵应用能力",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "高级代数",
+              "subtopics": [
+                "多项式理论",
+                "方程求解",
+                "不等式",
+                "函数分析"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解多项式的性质",
+                "掌握方程求解方法",
+                "能够分析函数性质"
+              ]
+            },
+            {
+              "topic": "矩阵理论",
+              "subtopics": [
+                "矩阵运算",
+                "行列式",
+                "矩阵方程",
+                "特征值特征向量"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解矩阵的概念",
+                "掌握矩阵的运算",
+                "能够应用矩阵解决问题"
+              ]
+            }
+          ],
+          "teaching_focus": "基础概念和技能"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "线性代数",
+              "subtopics": [
+                "向量空间",
+                "线性变换",
+                "内积空间",
+                "正交性"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解向量空间的概念",
+                "掌握线性变换",
+                "能够应用线性代数"
+              ]
+            },
+            {
+              "topic": "抽象代数",
+              "subtopics": [
+                "群论",
+                "环论",
+                "域论",
+                "同态同构"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "理解代数结构",
+                "掌握基本的抽象代数概念",
+                "能够进行简单的代数证明"
+              ]
+            }
+          ],
+          "teaching_focus": "概念深化和理论"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "代数专题",
+              "subtopics": [
+                "模论",
+                "域论",
+                "伽罗瓦理论",
+                "编码理论"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解高级代数概念",
+                "掌握代数理论",
+                "能够应用代数解决问题"
+              ]
+            }
+          ],
+          "teaching_focus": "专题研究和应用"
+        }
+      ]
+    },
+    {
+      "theme": "概率与统计",
+      "description": "培养学生的概率思维和统计分析能力",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "概率论基础",
+              "subtopics": [
+                "概率空间",
+                "条件概率",
+                "独立事件",
+                "贝叶斯定理"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解概率的基本概念",
+                "掌握概率计算方法",
+                "能够应用概率解决问题"
+              ]
+            },
+            {
+              "topic": "统计基础",
+              "subtopics": [
+                "数据描述",
+                "概率分布",
+                "抽样理论",
+                "参数估计"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解统计的基本概念",
+                "掌握统计方法",
+                "能够进行数据分析"
+              ]
+            }
+          ],
+          "teaching_focus": "基础理论和应用"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "高级统计",
+              "subtopics": [
+                "假设检验",
+                "方差分析",
+                "回归分析",
+                "时间序列"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解高级统计方法",
+                "掌握统计分析技巧",
+                "能够解释统计结果"
+              ]
+            },
+            {
+              "topic": "概率分布",
+              "subtopics": [
+                "多元分布",
+                "极限定理",
+                "随机过程",
+                "马尔可夫链"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解概率分布理论",
+                "掌握随机过程",
+                "能够进行概率建模"
+              ]
+            }
+          ],
+          "teaching_focus": "方法和应用"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "统计专题",
+              "subtopics": [
+                "非参数统计",
+                "贝叶斯统计",
+                "多元统计",
+                "机器学习基础"
+              ],
+              "weighting": 20,
+              "objectives": [
+                "理解现代统计方法",
+                "掌握高级统计技术",
+                "能够进行复杂数据分析"
+              ]
+            }
+          ],
+          "teaching_focus": "专题研究和创新"
+        }
+      ]
+    },
+    {
+      "theme": "数据科学",
+      "description": "培养学生数据处理和分析能力",
+      "content_by_level": [
+        {
+          "level": "中四",
+          "topics": [
+            {
+              "topic": "数据收集与处理",
+              "subtopics": [
+                "数据类型",
+                "数据收集方法",
+                "数据清洗",
+                "数据可视化"
+              ],
+              "weighting": 10,
+              "objectives": [
+                "理解数据的基本概念",
+                "掌握数据收集方法",
+                "能够进行数据处理"
+              ]
+            }
+          ],
+          "teaching_focus": "数据处理技能"
+        },
+        {
+          "level": "中五",
+          "topics": [
+            {
+              "topic": "数据分析方法",
+              "subtopics": [
+                "描述性分析",
+                "推断性分析",
+                "预测分析",
+                "文本分析"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "掌握数据分析方法",
+                "能够进行数据挖掘",
+                "能够解释分析结果"
+              ]
+            }
+          ],
+          "teaching_focus": "分析能力提升"
+        },
+        {
+          "level": "中六",
+          "topics": [
+            {
+              "topic": "数据科学应用",
+              "subtopics": [
+                "机器学习",
+                "深度学习",
+                "大数据分析",
+                "人工智能基础"
+              ],
+              "weighting": 15,
+              "objectives": [
+                "理解现代数据科学技术",
+                "掌握数据科学方法",
+                "能够应用数据科学解决问题"
+              ]
+            }
+          ],
+          "teaching_focus": "应用和创新"
+        }
+      ]
+    }
+  ],
+  "teaching_methodologies": {
+    "approaches": [
+      "案例教学",
+      "数据驱动教学",
+      "项目式学习",
+      "合作学习"
+    ],
+    "strategies": [
+      "概念建构",
+      "数据分析",
+      "应用实践",
+      "思维训练"
+    ],
+    "classroom_organization": [
+      "数据分析实验",
+      "小组讨论",
+      "项目研究",
+      "案例研讨"
+    ]
+  },
+  "assessment_strategies": {
+    "continuous_assessment": {
+      "weighting": 30,
+      "components": [
+        {
+          "component": "数据分析作业",
+          "weighting": 10,
+          "description": "数据分析练习和报告"
+        },
+        {
+          "component": "项目",
+          "weighting": 15,
+          "description": "数据科学项目和研究"
+        },
+        {
+          "component": "课堂参与",
+          "weighting": 5,
+          "description": "讨论和合作学习"
+        }
+      ]
+    },
+    "public_exam": {
+      "weighting": 70,
+      "components": [
+        {
+          "component": "理论部分",
+          "weighting": 25,
+          "description": "概念理解和理论推导"
+        },
+        {
+          "component": "应用部分",
+          "weighting": 35,
+          "description": "问题解决和数据分析"
+        },
+        {
+          "component": "探究部分",
+          "weighting": 10,
+          "description": "数据科学探究"
+        }
+      ]
+    }
+  },
+  "learning_outcomes": {
+    "knowledge": [
+      "掌握代数和矩阵理论",
+      "理解概率和统计方法",
+      "了解数据科学技术"
+    ],
+    "skills": [
+      "提高数据分析能力",
+      "培养统计思维",
+      "发展数学建模能力"
+    ],
+    "applications": [
+      "能够应用数学知识解决实际问题",
+      "能够进行数据分析",
+      "能够建立数学模型"
+    ]
+  },
+  "resource_requirements": {
+    "textbooks": [
+      "数学延伸部分（单元二）教科书",
+      "线性代数教材",
+      "概率统计教材",
+      "数据科学教材"
+    ],
+    "software": [
+      "统计软件（R, SPSS）",
+      "数学软件（Mathematica）",
+      "数据分析工具（Python）"
+    ],
+    "equipment": [
+      "计算机",
+      "计算器",
+      "数据采集设备"
+    ]
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "subject": "数学",
+  "level": "小一至小六",
+  "document_type": "阶段阐释",
+  "description": "数学课程第二阶段阐释（小四至小六）",
+  "phase_info": {
+    "phase": "第二阶段",
+    "grades": ["小四", "小五", "小六"],
+    "focus": "数学能力和思维的深化发展",
+    "duration": "三年"
+  },
+  "developmental_stages": [
+    {
+      "grade": "小四",
+      "characteristics": [
+        "抽象思维能力显著发展",
+        "逻辑推理能力增强",
+        "能够理解抽象概念",
+        "有一定的自主学习能力"
+      ],
+      "teaching_focus": [
+        "深化数学概念理解",
+        "培养抽象思维能力",
+        "发展逻辑推理能力",
+        "提高应用能力"
+      ],
+      "key_concepts": [
+        "大数的认识",
+        "分数的意义和性质",
+        "小数的初步认识",
+        "简单的几何概念"
+      ],
+      "teaching_strategies": [
+        "概念建构",
+        "抽象思维训练",
+        "问题解决教学",
+        "数学建模"
+      ]
+    },
+    {
+      "grade": "小五",
+      "characteristics": [
+        "抽象思维能力进一步发展",
+        "逻辑推理能力较强",
+        "能够进行复杂思考",
+        "有一定的创新意识"
+      ],
+      "teaching_focus": [
+        "培养数学建模能力",
+        "发展探究能力",
+        "提高综合应用能力",
+        "培养创新思维"
+      ],
+      "key_concepts": [
+        "分数的运算",
+        "小数的四则运算",
+        "百分数的概念和应用",
+        "比和比例"
+      ],
+      "teaching_strategies": [
+        "探究式学习",
+        "项目式学习",
+        "合作学习",
+        "数学实验"
+      ]
+    },
+    {
+      "grade": "小六",
+      "characteristics": [
+        "抽象思维能力成熟",
+        "逻辑推理能力强",
+        "能够进行系统性思考",
+        "有较强的自主学习能力"
+      ],
+      "teaching_focus": [
+        "巩固和综合运用知识",
+        "培养综合应用能力",
+        "发展高阶思维能力",
+        "做好中学过渡"
+      ],
+      "key_concepts": [
+        "整数、分数、小数的综合运算",
+        "百分数的应用",
+        "比和比例的应用",
+        "统计与概率初步"
+      ],
+      "teaching_strategies": [
+        "综合应用",
+        "系统梳理",
+        "拓展延伸",
+        "衔接中学"
+      ]
+    }
+  ],
+  "learning_progression": {
+    "conceptual_understanding": {
+      "小四": "深化概念理解",
+      "小五": "概念综合应用",
+      "小六": "概念系统化"
+    },
+    "mathematical_skills": {
+      "小四": "技能巩固提高",
+      "小五": "技能综合运用",
+      "小六": "技能熟练掌握"
+    },
+    "problem_solving": {
+      "小四": "解决简单问题",
+      "小五": "解决复杂问题",
+      "小六": "解决综合问题"
+    },
+    "mathematical_thinking": {
+      "小四": "逻辑思维发展",
+      "小五": "建模思维培养",
+      "小六": "创新思维发展"
+    }
+  },
+  "curriculum_emphasis": {
+    "knowledge_and_skills": {
+      "percentage": 40,
+      "focus": "基础知识和技能的掌握"
+    },
+    "process_and_methods": {
+      "percentage": 30,
+      "focus": "数学思维和方法的培养"
+    },
+    "attitude_and_values": {
+      "percentage": 20,
+      "focus": "数学情感和态度的培养"
+    },
+    "application_and_innovation": {
+      "percentage": 10,
+      "focus": "数学应用和创新能力的培养"
+    }
+  },
+  "assessment_approaches": {
+    "formative": {
+      "methods": [
+        "课堂表现观察",
+        "作业分析",
+        "小组评价",
+        "学习档案"
+      ],
+      "focus": "促进学习发展"
+    },
+    "summative": {
+      "methods": [
+        "单元测验",
+        "期中期末考试",
+        "能力测试",
+        "综合评估"
+      ],
+      "focus": "评价学习成果"
+    },
+    "alternative": {
+      "methods": [
+        "数学项目",
+        "数学日记",
+        "口头报告",
+        "数学竞赛"
+      ],
+      "focus": "全面评估能力"
+    }
+  },
+  "transition_to_secondary": {
+    "preparation_aspects": [
+      "知识储备",
+      "能力培养",
+      "思维发展",
+      "学习习惯"
+    ],
+    "key_areas": [
+      "运算能力",
+      "逻辑思维",
+      "空间想象",
+      "问题解决"
+    ],
+    "support_strategies": [
+      "知识梳理",
+      "能力提升",
+      "心理准备",
+      "学习方法指导"
+    ]
+  }
+}
