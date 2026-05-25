@@ -124,7 +124,6 @@ export const ZH_TW: Record<string, string> = {
   'Showing 14 of {n} students · scroll or open student detail': '顯示 14 名（共 {n} 名）· 滾動或開啟學生詳情',
   '{n} students · {subject}': '{n} 名學生 · {subject}',
   'Sort': '排序',
-  'Class': '班級',
   'Mastery in {subject}': '{subject} 掌握度',
   '14-day trend': '14 日趨勢',
   'Last active': '最近活動',

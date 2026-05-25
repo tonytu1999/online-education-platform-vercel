@@ -52,6 +52,12 @@ export function App() {
     setAuthUser(user);
   }
 
+  function handleLogout() {
+    localStorage.removeItem('lumen_token');
+    localStorage.removeItem('lumen_user');
+    setAuthUser(null);
+  }
+
   if (!authUser) {
     return <ViewLogin onLogin={handleLogin} />;
   }
@@ -103,6 +109,7 @@ export function App() {
         onCollapsedToggle={() => setCollapsed((v) => !v)}
         onSubscriptionClick={() => setShowSubscription(true)}
         onSettingsClick={() => setShowSettings(true)}
+        onLogout={handleLogout}
       />
 
       <div className="main">

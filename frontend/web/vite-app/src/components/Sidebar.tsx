@@ -13,9 +13,10 @@ interface SidebarProps {
   onCollapsedToggle: () => void;
   onSubscriptionClick: () => void;
   onSettingsClick: () => void;
+  onLogout: () => void;
 }
 
-export function Sidebar({ view, onNavigate, role, collapsed, onCollapsedToggle, onSubscriptionClick, onSettingsClick }: SidebarProps) {
+export function Sidebar({ view, onNavigate, role, collapsed, onCollapsedToggle, onSubscriptionClick, onSettingsClick, onLogout }: SidebarProps) {
   const items: NavItem[] = [
     { id: 'dashboard',     label: t('Dashboard'),     icon: 'home' },
     { id: 'classes',       label: t('Classes'),       icon: 'grid' },
@@ -90,6 +91,14 @@ export function Sidebar({ view, onNavigate, role, collapsed, onCollapsedToggle, 
         >
           <Icon name="settings" />
           {!collapsed && <span>{t('Settings')}</span>}
+        </button>
+        <button
+          className="navitem"
+          onClick={onLogout}
+          title={t('Log out')}
+        >
+          <Icon name="logout" />
+          {!collapsed && <span>{t('Log out')}</span>}
         </button>
         <button
           className="navitem sidebar__collapse-btn"

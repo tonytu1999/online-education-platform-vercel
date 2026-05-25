@@ -1,35 +1,31 @@
-import { useState, FormEvent } from 'react';
-
-const API_BASE = "https://online-education-platform-backend-kappa.vercel.app/api";
+import { useState, FormEvent } from "react";
+import { apiLogin, apiRegister } from "../lib/api";
 
 interface LoginProps {
-  onLogin: (token: string, user: { id: number; name: string; role: string }) => void;
+  onLogin: (
+    token: string,
+    user: { id: number; name: string; role: string },
+  ) => void;
 }
 
 export function ViewLogin({ onLogin }: LoginProps) {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('TEACHER');
-  const [error, setError] = useState('');
+  const [tab, setTab] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("TEACHER");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Login failed'); return; }
+      const data = await apiLogin(email, password);
       onLogin(data.token, data.user);
-    } catch {
-      setError('Network error — is the server running?');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -37,27 +33,14 @@ export function ViewLogin({ onLogin }: LoginProps) {
 
   async function handleRegister(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Registration failed'); return; }
-      // Auto-login after register
-      const loginRes = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const loginData = await loginRes.json();
-      if (!loginRes.ok) { setTab('login'); setError('Registered! Please log in.'); return; }
-      onLogin(loginData.token, loginData.user);
-    } catch {
-      setError('Network error — is the server running?');
+      await apiRegister(name, email, password, role);
+      const data = await apiLogin(email, password);
+      onLogin(data.token, data.user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -69,8 +52,18 @@ export function ViewLogin({ onLogin }: LoginProps) {
         <div className="auth-brand">
           <div className="brand-mark">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3L4 7v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V7l-8-4z" fill="currentColor" fillOpacity=".9"/>
-              <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M12 3L4 7v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V7l-8-4z"
+                fill="currentColor"
+                fillOpacity=".9"
+              />
+              <path
+                d="M9 12l2 2 4-4"
+                stroke="#fff"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <span className="auth-brand__name">Lumen</span>
@@ -78,16 +71,26 @@ export function ViewLogin({ onLogin }: LoginProps) {
 
         <div className="auth-tabs">
           <button
-            className={`auth-tab${tab === 'login' ? ' auth-tab--active' : ''}`}
-            onClick={() => { setTab('login'); setError(''); }}
-          >Sign in</button>
+            className={`auth-tab${tab === "login" ? " auth-tab--active" : ""}`}
+            onClick={() => {
+              setTab("login");
+              setError("");
+            }}
+          >
+            Sign in
+          </button>
           <button
-            className={`auth-tab${tab === 'register' ? ' auth-tab--active' : ''}`}
-            onClick={() => { setTab('register'); setError(''); }}
-          >Create account</button>
+            className={`auth-tab${tab === "register" ? " auth-tab--active" : ""}`}
+            onClick={() => {
+              setTab("register");
+              setError("");
+            }}
+          >
+            Create account
+          </button>
         </div>
 
-        {tab === 'login' ? (
+        {tab === "login" ? (
           <form className="auth-form" onSubmit={handleLogin}>
             <label className="auth-label">
               Email
@@ -115,7 +118,7 @@ export function ViewLogin({ onLogin }: LoginProps) {
             </label>
             {error && <p className="auth-error">{error}</p>}
             <button className="auth-submit" type="submit" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
         ) : (
@@ -171,7 +174,7 @@ export function ViewLogin({ onLogin }: LoginProps) {
             </label>
             {error && <p className="auth-error">{error}</p>}
             <button className="auth-submit" type="submit" disabled={loading}>
-              {loading ? 'Creating account…' : 'Create account'}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
         )}
