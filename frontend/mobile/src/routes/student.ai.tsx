@@ -6,8 +6,9 @@ import { studentTabs } from "@/components/mobile/student-tabs";
 import { subjects as mockSubjects } from "@/lib/mock-data";
 import { useCurriculum } from "@/lib/useCurriculum";
 import { apiChat, apiCreateChatSession, apiGetChatSessions, apiGetChatSession, apiDeleteChatSession } from "@/lib/api";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
+import { getSocraticPrompt } from "@/lib/prompts";
 import { Send, Mic, Sparkles, MessageSquare, ShieldAlert, History, Plus, X, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/student/ai")({
@@ -23,6 +24,7 @@ interface Msg { role: "user" | "ai"; text: string; blocked?: boolean }
 
 function AIChat() {
   const t = useT();
+  const lang = useLang();
   const userId = useAppStore((s) => s.userId);
   const { aiSessions, saveSession, removeSession } = useAppStore();
   const { kp, subject: urlSubject, chapter: urlChapter } = Route.useSearch();
@@ -117,11 +119,26 @@ function AIChat() {
     try {
       const subject = kpInfo?.subjectName || undefined;
       const topic = kpInfo?.name || undefined;
+      const chapter = kpInfo ? urlChapter : undefined;
+      const knowledgepoint = kpInfo?.name || undefined;
+      const grade = useAppStore.getState().grade;
+      const socraticBase = getSocraticPrompt(lang, grade);
+
+      let systemPrompt = "";
+      if (mode === "guided" && kpInfo) {
+        systemPrompt = `${socraticBase}\n\n# Current Context\nSubject: ${kpInfo.subjectName}\nChapter: ${kpInfo.chapterName}\nKnowledge Point: ${kpInfo.name}\nGrade: ${grade}`;
+      } else {
+        systemPrompt = socraticBase;
+      }
+
       const res = await apiCreateChatSession({
         type: "Socratic",
         title: mode === "guided" ? (kpInfo?.name || "Guided Learning") : "Free Chat",
         subject,
         topic,
+        chapter,
+        knowledgepoint,
+        systemPrompt,
       });
       setSessionId(res.session.sessionId);
       // Save to local cache for immediate display in history
@@ -184,11 +201,26 @@ function AIChat() {
         try {
           const subject = kpInfo?.subjectName || undefined;
           const topic = kpInfo?.name || undefined;
+          const chapter = kpInfo ? urlChapter : undefined;
+          const knowledgepoint = kpInfo?.name || undefined;
+          const grade = useAppStore.getState().grade;
+          const socraticBase = getSocraticPrompt(lang, grade);
+
+          let systemPrompt = "";
+          if (mode === "guided" && kpInfo) {
+            systemPrompt = `${socraticBase}\n\n# Current Context\nSubject: ${kpInfo.subjectName}\nChapter: ${kpInfo.chapterName}\nKnowledge Point: ${kpInfo.name}\nGrade: ${grade}`;
+          } else {
+            systemPrompt = socraticBase;
+          }
+
           const res = await apiCreateChatSession({
             type: "Socratic",
             title: mode === "guided" ? (kpInfo?.name || "Guided Learning") : "Free Chat",
             subject,
             topic,
+            chapter,
+            knowledgepoint,
+            systemPrompt,
           });
           currentSessionId = res.session.sessionId;
           setSessionId(currentSessionId);

@@ -263,6 +263,9 @@ function OnboardingPage() {
       setStep(step + 1);
     } else {
       useAppStore.getState().setOnboarded();
+      if (role === "student" && grade) {
+        useAppStore.getState().setGrade(grade);
+      }
       const r = role as Role;
       navigate({ to: r === "student" ? "/student/learn" : "/parent/overview" });
     }

@@ -31,6 +31,7 @@ interface AppState {
   age: string;
   country: string;
   school: string;
+  grade: string;
   token: string | null;
   userId: string | null;
   aiSessions: AiSession[];
@@ -48,6 +49,7 @@ interface AppState {
   setAge: (a: string) => void;
   setCountry: (c: string) => void;
   setSchool: (s: string) => void;
+  setGrade: (g: string) => void;
   saveSession: (s: AiSession) => void;
   removeSession: (id: string) => void;
   clearSessions: () => void;
@@ -71,12 +73,13 @@ export const useAppStore = create<AppState>()(
       age: "",
       country: "",
       school: "",
+      grade: "",
       token: null,
       userId: null,
       aiSessions: [],
       setLogin: (account, nickname, examType, token, userId) =>
         set({ loggedIn: true, account, nickname: nickname || account, examType, token, userId }),
-      logout: () => set({ loggedIn: false, account: "", nickname: "", onboarded: false, gender: "", age: "", country: "", school: "", token: null, userId: null }),
+      logout: () => set({ loggedIn: false, account: "", nickname: "", onboarded: false, gender: "", age: "", country: "", school: "", grade: "", token: null, userId: null }),
       setRole: (role) => set({ role }),
       bindChild: (id) => set({ boundChildId: id }),
       completeTest: (score) => set({ testCompleted: true, lastScore: score }),
@@ -89,6 +92,7 @@ export const useAppStore = create<AppState>()(
       setAge: (age) => set({ age }),
       setCountry: (country) => set({ country }),
       setSchool: (school) => set({ school }),
+      setGrade: (grade) => set({ grade }),
       saveSession: (s) =>
         set((st) => ({
           aiSessions: [s, ...st.aiSessions.filter((x) => x.id !== s.id)].slice(0, 20),

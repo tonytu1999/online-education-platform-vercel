@@ -3,7 +3,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { studentTabs } from "@/components/mobile/student-tabs";
 import { apiCreateChatSession, apiChat } from "@/lib/api";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
+import { getMentalPrompt } from "@/lib/prompts";
 
 export const Route = createFileRoute("/student/treehole")({
   component: TreeHole,
@@ -17,6 +18,7 @@ interface Msg {
 
 function TreeHole() {
   const t = useT();
+  const lang = useLang();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [started, setStarted] = useState(false);
@@ -61,6 +63,7 @@ function TreeHole() {
       if (!currentSessionId) {
         const res = await apiCreateChatSession({
           type: "Mental",
+          systemPrompt: getMentalPrompt(lang),
         });
         currentSessionId = res.session.sessionId || res.session.id;
         setSessionId(currentSessionId);

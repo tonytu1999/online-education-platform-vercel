@@ -118,7 +118,11 @@ export async function apiCreateChatSession(body: {
   title?: string;
   subject?: string;
   topic?: string;
+  chapter?: string;
+  knowledgepoint?: string;
+  systemPrompt?: string;
 }): Promise<{ session: { id: string; sessionId: string; title: string; sessionType: string; subject: string | null; topic: string | null } }> {
+  console.log("[apiCreateChatSession] Creating session:", JSON.stringify(body));
   return request("/ai/sessions", { method: "POST", body: JSON.stringify(body) });
 }
 
@@ -156,4 +160,71 @@ export async function apiGetStudentUuidByEmail(email: string): Promise<{ id: str
 
 export async function apiBindChild(childId: string): Promise<{ message: string }> {
   return request("/users/bind-child", { method: "POST", body: JSON.stringify({ childId }) });
+}
+
+// ── Mental Health ──────────────────────────────────────────────────────────
+
+export interface MentalHealthRecord {
+  id: string;
+  statusScore: number;
+  scoreDelta: number;
+  statusLabel: string;
+  reasonSummary: string;
+  signals: string[];
+  emotionPolarity: string;
+  riskLevel: string;
+  keywords: string[];
+  createdAt: string;
+}
+
+export interface MentalHealthTrendPoint {
+  date: string;
+  statusScore: number;
+  scoreDelta: number;
+  statusLabel: string;
+  emotionPolarity: string;
+  riskLevel: string;
+}
+
+export interface MentalHealthHistory {
+  studentId: string;
+  latestScore: number;
+  latestStatusLabel: string;
+  latestEmotionPolarity: string;
+  latestRiskLevel: string;
+  latestSignals: string[];
+  trend: MentalHealthTrendPoint[];
+  records: MentalHealthRecord[];
+}
+
+export async function apiGetMentalHealthHistory(
+  studentId: string,
+  opts?: { limit?: number }
+): Promise<MentalHealthHistory> {
+  const qs = opts?.limit ? `?limit=${opts.limit}` : '';
+  return request(`/ai/mental-health/${studentId}${qs}`);
+}
+
+export interface SessionMentalHealthResult {
+  sentimentScore: number;
+  scoreDelta: number;
+  currentScore: number;
+  statusLabel: string;
+  emotionPolarity: string;
+  riskLevel: string;
+  signals: string[];
+  reasonSummary: string;
+  recordId: string;
+}
+
+export async function apiCheckSessionMentalHealth(
+  sessionId: string
+): Promise<SessionMentalHealthResult> {
+  return request(`/ai/sessions/${sessionId}/mental-health`, { method: "POST" });
+}
+
+// ── Children (from backend) ───────────────────────────────────────────────
+
+export async function apiGetChildren(): Promise<Array<{ id: string; name: string; email: string | null; phone: string | null }>> {
+  return request("/users/children");
 }
