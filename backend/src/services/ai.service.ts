@@ -574,6 +574,7 @@ export const generateSocraticResponse = async (
 };
 
 const VALID_MASTERY: MasteryLevel[] = ['UNMASTERED', 'PARTIAL', 'MASTERED'];
+const MASTERY_RANK: Record<MasteryLevel, number> = { UNMASTERED: 0, PARTIAL: 1, MASTERED: 2 };
 
 // Analyse the Socratic conversation and upsert Progress records for engaged knowledge points.
 // Designed to run fire-and-forget — never throws.
@@ -622,19 +623,39 @@ export const analyzeLearningBehavior = async (
     // Case-insensitive lookup so minor AI formatting differences don't break matching
     const kpMap = new Map(knowledgePoints.map(kp => [kp.name.toLowerCase().trim(), kp.id]));
 
+    // Collect the KP ids the AI identified, then fetch existing progress in one query
+    const matchedKpIds = parsed.knowledgePoints
+      .map(item => kpMap.get(item.name.toLowerCase().trim()))
+      .filter((id): id is string => id !== undefined);
+
+    const existingProgress = await prisma.progress.findMany({
+      where: { studentId, knowledgePointId: { in: matchedKpIds } },
+      select: { knowledgePointId: true, mastery: true }
+    });
+    const existingMap = new Map(existingProgress.map(p => [p.knowledgePointId, p.mastery]));
+
     for (const item of parsed.knowledgePoints) {
       const kpId = kpMap.get(item.name.toLowerCase().trim());
       if (!kpId) continue;
 
-      const mastery: MasteryLevel = VALID_MASTERY.includes(item.mastery as MasteryLevel)
+      const aiMastery: MasteryLevel = VALID_MASTERY.includes(item.mastery as MasteryLevel)
         ? (item.mastery as MasteryLevel)
         : 'PARTIAL';
 
+      // Mastery only moves forward — never downgrade an existing level
+      const currentMastery = existingMap.get(kpId);
+      const effectiveMastery = currentMastery && MASTERY_RANK[currentMastery] >= MASTERY_RANK[aiMastery]
+        ? currentMastery
+        : aiMastery;
+
       await prisma.progress.upsert({
         where: { studentId_knowledgePointId: { studentId, knowledgePointId: kpId } },
-        create: { studentId, knowledgePointId: kpId, mastery, studyTimeSeconds: 60 },
-        update: { mastery, studyTimeSeconds: { increment: 60 } }
+        create: { studentId, knowledgePointId: kpId, mastery: effectiveMastery, studyTimeSeconds: 60 },
+        // Study time is set once on first engagement; subsequent analysis runs only update mastery
+        update: { mastery: effectiveMastery }
       });
+
+      console.log(`[LEARNING ANALYSIS] ${item.name}: ${currentMastery ?? 'NEW'} → ${effectiveMastery}`);
     }
   } catch (error) {
     console.error('[LEARNING ANALYSIS] Failed:', error instanceof Error ? error.message : error);
