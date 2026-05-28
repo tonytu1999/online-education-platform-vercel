@@ -11,7 +11,7 @@ type SessionTypeInput = typeof SESSION_TYPES[number];
 export const createChatSession = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const studentId = req.user?.id;
-    const { type } = req.body;
+    const { type, systemPrompt } = req.body;
 
     if (!studentId) {
       res.status(401).json({ error: 'User not authenticated' });
@@ -25,10 +25,11 @@ export const createChatSession = async (req: AuthRequest, res: Response): Promis
 
     const sessionType = type === 'Mental' ? 'MENTAL' : 'SOCRATIC';
 
-    const session = await prisma.chatSession.create({
+    const session = await (prisma.chatSession.create as any)({
       data: {
         studentId,
-        sessionType
+        sessionType,
+        ...(systemPrompt && typeof systemPrompt === 'string' ? { systemPrompt } : {})
       }
     });
 
@@ -130,12 +131,14 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
           { sessionId }
         ]
       }
-    }) as (Awaited<ReturnType<typeof prisma.chatSession.findFirst>> & { sessionType: string }) | null;
+    }) as (Awaited<ReturnType<typeof prisma.chatSession.findFirst>> & { sessionType: string; systemPrompt: string | null }) | null;
 
     if (!session || session.studentId !== studentId) {
       res.status(404).json({ error: 'Session not found' });
       return;
     }
+
+    const effectiveSystemPrompt = session.systemPrompt ?? undefined;
 
     // Check if this is the first user message (for Socratic title generation)
     const isSocratic = session.sessionType === 'SOCRATIC';
@@ -158,8 +161,8 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
 
     // Generate response based on session type
     let { response: aiResponse, model } = isSocratic
-      ? await generateSocraticResponse(message, session.id)
-      : await generateMentalHealthResponse(message, session.id);
+      ? await generateSocraticResponse(message, session.id, effectiveSystemPrompt)
+      : await generateMentalHealthResponse(message, session.id, effectiveSystemPrompt);
 
     console.warn('[CHAT] Generated response');
 

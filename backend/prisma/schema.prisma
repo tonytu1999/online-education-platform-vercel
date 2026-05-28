@@ -162,6 +162,7 @@ model ChatSession {
   title     String   @default("New Chat")
   subject   String?
   topic     String?
+  systemPrompt String? @db.Text
   chatHistories ChatHistory[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

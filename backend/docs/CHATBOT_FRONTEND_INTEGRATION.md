@@ -4,11 +4,13 @@
 
 ### 1. Initialize Chat Session
 
-When a student enters the tutoring section, create a new session:
+When a student enters the tutoring section, create a new session. Pass an optional `systemPrompt` here to set a custom AI instruction that will be used for every message in the session.
 
 ```typescript
-// Create a new chat session
-async function createChatSession(title: string, subject: string, topic: string) {
+async function createChatSession(
+  type: 'Socratic' | 'Mental',
+  systemPrompt?: string
+) {
   const response = await fetch('/api/ai/sessions', {
     method: 'POST',
     headers: {
@@ -16,9 +18,8 @@ async function createChatSession(title: string, subject: string, topic: string) 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      title,
-      subject,
-      topic
+      type,
+      ...(systemPrompt ? { systemPrompt } : {})
     })
   });
   
@@ -26,8 +27,14 @@ async function createChatSession(title: string, subject: string, topic: string) 
   return data.session.id;  // Save this sessionId
 }
 
-// Usage
-const sessionId = await createChatSession('Algebra Help', 'Mathematics', 'Quadratic Equations');
+// Usage — plain session
+const sessionId = await createChatSession('Socratic');
+
+// Usage — session with a custom system prompt
+const sessionId = await createChatSession(
+  'Socratic',
+  'You are a DSE Mathematics tutor for Form 4 students. Always respond in Traditional Chinese.'
+);
 ```
 
 ### 2. Load Previous Sessions
@@ -55,7 +62,7 @@ sessions.forEach(session => {
 
 ### 3. Send Message and Get Response
 
-Send student message and receive AI response with context:
+Send student message and receive AI response with context. The system prompt set at session creation is applied automatically — no need to pass it here.
 
 ```typescript
 async function sendChatMessage(sessionId: string, message: string) {
@@ -77,7 +84,7 @@ async function sendChatMessage(sessionId: string, message: string) {
   }
   
   const data = await response.json();
-  return data.response;  // AI's Socratic response
+  return data.response;  // AI's response
 }
 
 // Usage
@@ -390,21 +397,19 @@ class ChatbotService {
   ChatbotService({required this.authToken});
 
   Future<ChatSession> createSession({
-    required String title,
-    required String subject,
-    required String topic,
+    required String type,    // 'Socratic' or 'Mental'
+    String? systemPrompt,    // optional — stored on session, applied to every message
   }) async {
+    final body = <String, dynamic>{ 'type': type };
+    if (systemPrompt != null) body['systemPrompt'] = systemPrompt;
+
     final response = await http.post(
       Uri.parse('$baseUrl/sessions'),
       headers: {
         'Authorization': 'Bearer $authToken',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'title': title,
-        'subject': subject,
-        'topic': topic,
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode == 201) {

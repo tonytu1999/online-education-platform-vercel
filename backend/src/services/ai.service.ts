@@ -7,6 +7,7 @@ interface AIServiceRequest {
   message: string;
   conversationHistory?: Array<{ role: string; content: string }>;
   subject?: string;
+  customSystemPrompt?: string;
 }
 
 interface ChatMessage {
@@ -311,8 +312,7 @@ const callOpenRouter = async (req: AIServiceRequest): Promise<string> => {
     { role: 'user' as const, content: req.message }
   ];
 
-  // Get system prompt based on subject
-  const systemPrompt = getSystemPrompt(req.subject);
+  const systemPrompt = req.customSystemPrompt ?? getSystemPrompt(req.subject);
 
   try {
     console.log(`[AI Service] Calling OpenRouter with model: ${process.env.OPENROUTER_SOCRATIC_MODEL || 'gpt-4o-mini'}, subject: ${req.subject || 'default'}`);
@@ -507,7 +507,8 @@ const callDeepSeek = async (req: AIServiceRequest): Promise<string> => {
 
 export const generateSocraticResponse = async (
   userMessage: string,
-  sessionId?: string
+  sessionId?: string,
+  customSystemPrompt?: string
 ): Promise<{ response: string; model: string }> => {
   const activeModel = await getActiveAIModel();
 
@@ -531,7 +532,8 @@ export const generateSocraticResponse = async (
   const req: AIServiceRequest = {
     message: userMessage,
     conversationHistory,
-    subject
+    subject,
+    customSystemPrompt
   };
 
   let response = '';
@@ -641,7 +643,8 @@ export const analyzeLearningBehavior = async (
 
 export const generateMentalHealthResponse = async (
   userMessage: string,
-  sessionId: string
+  sessionId: string,
+  customSystemPrompt?: string
 ): Promise<{ response: string; model: string }> => {
   const activeModel = await getActiveAIModel();
 
@@ -655,7 +658,7 @@ export const generateMentalHealthResponse = async (
     console.error('[AI Service] Error fetching mental chat history:', error);
   }
 
-  const systemPrompt = getMentalChatSystemPrompt();
+  const systemPrompt = customSystemPrompt ?? getMentalChatSystemPrompt();
   const messages: ChatMessage[] = [
     ...conversationHistory,
     { role: 'user', content: userMessage }

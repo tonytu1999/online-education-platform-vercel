@@ -489,15 +489,19 @@ There are two session types, set once at creation. The single send-message endpo
 - **Auth**: Required
 - **Body**:
   ```json
-  { "type": "Socratic" }
+  {
+    "type": "Socratic",
+    "systemPrompt": "You are a DSE Mathematics tutor for Form 4 students. Always respond in Traditional Chinese."
+  }
   ```
-  or
-  ```json
-  { "type": "Mental" }
-  ```
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | string | Yes | `"Socratic"` or `"Mental"` |
+  | `systemPrompt` | string | No | Custom instruction stored on the session and used as the AI system prompt for every message. Overrides the default Socratic or Mental Health prompt. |
 - **Notes**:
   - `Socratic` sessions auto-generate their title from the first user message.
   - `Mental` sessions keep the default title `"New Chat"`.
+  - `systemPrompt` is stored once at creation and applied automatically to all messages in the session.
 - **Success Response**: `201 Created`
   ```json
   {
@@ -509,6 +513,7 @@ There are two session types, set once at creation. The single send-message endpo
       "title": "New Chat",
       "subject": null,
       "topic": null,
+      "systemPrompt": "You are a DSE Mathematics tutor for Form 4 students. Always respond in Traditional Chinese.",
       "createdAt": "2026-05-28T10:00:00Z",
       "updatedAt": "2026-05-28T10:00:00Z"
     }
@@ -538,10 +543,16 @@ There are two session types, set once at creation. The single send-message endpo
     "message": "I cannot understand quadratic equations at all."
   }
   ```
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `sessionId` | string | Yes | The session UUID (or `sessionId` alias). |
+  | `message` | string | Yes | The student's message. |
+
 - **Behaviour by session type**:
   - **Socratic** — AI responds with a guiding question. Title is set from the first message. After the AI reply, learning behaviour analysis runs in the background: the conversation is sent to the AI to identify which curriculum knowledge points were engaged and the student's mastery level (`UNMASTERED / PARTIAL / MASTERED`). `Progress` records are upserted and study time incremented by 60 s per exchange.
   - **Mental** — AI responds as an empathetic wellbeing companion. No learning analysis.
   - **Both** — sentiment is analysed (AFINN + academic extras) and a `mentalHealth` record is created and returned.
+  - **System prompt** — the custom system prompt set at session creation is automatically applied to every message; no need to pass it here.
 - **Success Response**: `200 OK`
   ```json
   {
@@ -633,6 +644,7 @@ There are two session types, set once at creation. The single send-message endpo
 
 - **Session-Based Memory**: Each session maintains separate conversations
 - **Context-Aware Responses**: Last 10 messages automatically included for coherent responses
+- **Custom System Prompt**: Pass `systemPrompt` in any `/ai/chat` request to override the default AI instructions; the prompt is stored on the session and applied to all subsequent messages automatically
 - **Socratic Method**: AI guides learning through questioning
 - **Learning Behaviour Analysis**: After every Socratic message the AI identifies engaged curriculum knowledge points and mastery level; `Progress` records are upserted automatically (fire-and-forget, does not add response latency)
 - **Content Filtering**: Automatically blocks prohibited topics
