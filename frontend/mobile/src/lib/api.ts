@@ -1,6 +1,6 @@
 import { useAppStore } from "./store";
 
-const API_BASE = "https://online-education-platform-backend-kappa.vercel.app/api/";
+const API_BASE = "https://online-education-platform-backend-kappa.vercel.app/api";
 
 function getToken(): string | null {
   return useAppStore.getState().token;
@@ -45,6 +45,22 @@ export async function apiRegister(body: {
   role: string;
 }): Promise<{ message: string; userId: string }> {
   return request("/auth/register", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function apiSelectRole(
+  userId: string,
+  role: string,
+): Promise<{ message: string; userId: string; role: string }> {
+  const res = await fetch(`${API_BASE}/auth/select-role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, role }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).error || `API ${res.status}`);
+  }
+  return res.json();
 }
 
 export async function apiGetProfile(): Promise<{
@@ -98,10 +114,11 @@ export async function apiUpdateProgress(body: {
 // AI Chat (session-based)
 
 export async function apiCreateChatSession(body: {
+  type: "Socratic" | "Mental";
   title?: string;
   subject?: string;
   topic?: string;
-}): Promise<{ session: { sessionId: string; title: string; subject: string | null; topic: string | null } }> {
+}): Promise<{ session: { id: string; sessionId: string; title: string; sessionType: string; subject: string | null; topic: string | null } }> {
   return request("/ai/sessions", { method: "POST", body: JSON.stringify(body) });
 }
 
@@ -124,22 +141,6 @@ export async function apiChat(body: {
   return request("/ai/chat", { method: "POST", body: JSON.stringify(body) });
 }
 
-export async function apiCheckMentalHealth(): Promise<{
-  emotionPolarity: string;
-  riskLevel: string;
-  keywords: string[];
-}> {
-  return request("/ai/mental-health", { method: "POST", body: JSON.stringify({}) });
-}
-
-// Treehole chat
-export async function apiTreehole(body: {
-  message: string;
-  history?: Array<{ role: "user" | "ai"; text: string }>;
-}): Promise<{ response: string }> {
-  return request("/ai/treehole", { method: "POST", body: JSON.stringify(body) });
-}
-
 export async function apiGetStudentUuidByEmail(email: string): Promise<{ id: string } | null> {
   try {
     const res = await fetch(`${API_BASE}/users/uuid-by-email?email=${encodeURIComponent(email)}`);
@@ -151,4 +152,8 @@ export async function apiGetStudentUuidByEmail(email: string): Promise<{ id: str
   } catch {
     return null;
   }
+}
+
+export async function apiBindChild(childId: string): Promise<{ message: string }> {
+  return request("/users/bind-child", { method: "POST", body: JSON.stringify({ childId }) });
 }

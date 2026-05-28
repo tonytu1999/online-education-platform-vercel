@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useAppStore, type Role } from "@/lib/store";
 import { useT } from "@/lib/i18n";
-import { ChevronRight, ChevronLeft, Search, X, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft, Search, X, Check, Loader2 } from "lucide-react";
+import { apiGetStudentUuidByEmail, apiBindChild, apiSelectRole } from "@/lib/api";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "完善信息 — 智学" }] }),
@@ -213,8 +214,9 @@ function OnboardingPage() {
   const [age, setAge] = useState("");
   const [school, setSchool] = useState("");
   const [grade, setGrade] = useState("");
-  const [linkPhone, setLinkPhone] = useState("");
-  const [linkCode, setLinkCode] = useState("");
+  const [linkEmail, setLinkEmail] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [linkError, setLinkError] = useState("");
   const [linked, setLinked] = useState(false);
   const [showSchoolPicker, setShowSchoolPicker] = useState(false);
 
@@ -243,9 +245,19 @@ function OnboardingPage() {
     )) ||
     (step === 4 && role === "student" && school !== "" && grade !== "");
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
-      if (role) setRoleInStore(role as Role);
+      if (role) {
+        setRoleInStore(role as Role);
+        const userId = useAppStore.getState().userId;
+        if (userId) {
+          try {
+            await apiSelectRole(userId, role.toUpperCase());
+          } catch (_err) {
+            // proceed to next step even if role sync fails
+          }
+        }
+      }
     }
     if (step < totalSteps - 1) {
       setStep(step + 1);
@@ -266,8 +278,9 @@ function OnboardingPage() {
         setSchool("");
         setGrade("");
         setLinked(false);
-        setLinkPhone("");
-        setLinkCode("");
+        setLinkEmail("");
+        setLinkError("");
+        setSearching(false);
       }
     } else {
       navigate({ to: "/login" });
@@ -454,7 +467,7 @@ function OnboardingPage() {
       </div>
     </div>,
 
-    /* Step 3: Link */
+    /* Step 3: Link child via email */
     <div key="link" className="flex flex-col items-center pt-10">
       <div className="flex h-18 w-18 items-center justify-center rounded-3xl bg-primary-soft text-4xl" style={{ width: 72, height: 72 }}>
         🔗
@@ -462,38 +475,61 @@ function OnboardingPage() {
       <h2 className="mt-7 text-xl font-bold tracking-tight">{t("onboard.link.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground/70">{t("onboard.link.subtitle")}</p>
       <div className="mt-8 w-full space-y-3">
-        <input
-          value={linkPhone}
-          onChange={(e) => setLinkPhone(e.target.value)}
-          placeholder={t("onboard.link.phonePlaceholder")}
-          className="w-full rounded-2xl border border-border/80 bg-card px-4 py-3.5 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
-        />
         <div className="relative">
           <input
-            value={linkCode}
-            onChange={(e) => setLinkCode(e.target.value)}
-            placeholder={t("onboard.link.codePlaceholder")}
-            className="w-full rounded-2xl border border-border/80 bg-card px-4 py-3.5 pr-24 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+            value={linkEmail}
+            onChange={(e) => {
+              setLinkEmail(e.target.value);
+              setLinkError("");
+            }}
+            placeholder={t("onboard.link.emailPlaceholder")}
+            type="email"
+            className="w-full rounded-2xl border border-border/80 bg-card px-4 py-3.5 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
           />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-primary-soft px-3.5 py-1.5 text-xs font-semibold text-primary"
-          >
-            {t("onboard.link.getCode")}
-          </button>
+          {searching && (
+            <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary" />
+          )}
         </div>
+        {linkError && (
+          <div className="flex items-center gap-2 rounded-2xl bg-danger-soft/60 p-3.5 text-sm text-danger">
+            <span>⚠️</span>
+            {linkError}
+          </div>
+        )}
         {linked && (
           <div className="flex items-center gap-2 rounded-2xl bg-mastered-soft/80 p-3.5 text-sm text-mastered">
             <span>✅</span>
             {t("onboard.link.success")}
           </div>
         )}
-        {!linked && linkPhone && linkCode && (
+        {!linked && linkEmail && !linkError && (
           <button
-            onClick={() => setLinked(true)}
-            className="w-full rounded-2xl bg-primary-soft py-3.5 text-sm font-semibold text-primary transition-all hover:bg-primary/15 active:scale-[0.97]"
+            disabled={searching}
+            onClick={async () => {
+              setSearching(true);
+              setLinkError("");
+              try {
+                const result = await apiGetStudentUuidByEmail(linkEmail.trim());
+                if (!result) {
+                  setLinkError(t("onboard.link.notFound"));
+                  setSearching(false);
+                  return;
+                }
+                await apiBindChild(result.id);
+                setLinked(true);
+              } catch (err: any) {
+                if (err?.message?.includes("409") || err?.message?.includes("already linked")) {
+                  setLinkError(t("onboard.link.alreadyLinked"));
+                } else {
+                  setLinkError(t("onboard.link.failed"));
+                }
+              } finally {
+                setSearching(false);
+              }
+            }}
+            className="w-full rounded-2xl bg-primary-soft py-3.5 text-sm font-semibold text-primary transition-all hover:bg-primary/15 active:scale-[0.97] disabled:opacity-60"
           >
-            {t("onboard.next")}
+            {searching ? t("onboard.link.searching") : t("onboard.link.bind")}
           </button>
         )}
       </div>

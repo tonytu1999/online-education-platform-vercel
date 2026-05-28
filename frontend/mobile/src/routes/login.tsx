@@ -24,6 +24,8 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const setLogin = useAppStore((s) => s.setLogin);
+  const setRole = useAppStore((s) => s.setRole);
+  const setOnboarded = useAppStore((s) => s.setOnboarded);
   const navigate = useNavigate();
   const t = useT();
 
@@ -58,6 +60,16 @@ function LoginPage() {
           password: code,
           role: "STUDENT",
         });
+        // 注册成功后自动登录获取 token
+        const loginRes = await apiLogin(account, code);
+        setLogin(
+          account,
+          loginRes.user.name || nickname.trim() || account.split("@")[0] || account,
+          "dse",
+          loginRes.token,
+          loginRes.user.id,
+        );
+        setRole("student");
         navigate({ to: "/onboarding" });
       } else {
         const res = await apiLogin(account, code);

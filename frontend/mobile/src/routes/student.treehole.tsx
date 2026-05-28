@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { studentTabs } from "@/components/mobile/student-tabs";
-import { apiTreehole } from "@/lib/api";
+import { apiCreateChatSession, apiChat } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/student/treehole")({
@@ -21,6 +21,7 @@ function TreeHole() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [started, setStarted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -55,16 +56,17 @@ function TreeHole() {
     setSending(true);
 
     try {
-      // Build conversation history for context (last 10 messages)
-      const history = messages
-        .filter((m) => m.role === "user" || m.role === "tree")
-        .slice(-10)
-        .map((m) => ({
-          role: m.role === "user" ? "user" as const : "ai" as const,
-          text: m.text,
-        }));
+      let currentSessionId = sessionId;
+      // Create a Mental session on first message
+      if (!currentSessionId) {
+        const res = await apiCreateChatSession({
+          type: "Mental",
+        });
+        currentSessionId = res.session.sessionId || res.session.id;
+        setSessionId(currentSessionId);
+      }
 
-      const res = await apiTreehole({ message: text, history });
+      const res = await apiChat({ sessionId: currentSessionId, message: text });
       setMessages((m) => [
         ...m,
         { role: "tree", text: res.response, time: Date.now() },

@@ -26,7 +26,7 @@ function AIChat() {
   const userId = useAppStore((s) => s.userId);
   const { aiSessions, saveSession, removeSession } = useAppStore();
   const { kp, subject: urlSubject, chapter: urlChapter } = Route.useSearch();
-  const [mode, setMode] = useState<"free" | "guided">("guided");
+  const [mode, setMode] = useState<"free" | "guided">("free");
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -75,7 +75,7 @@ function AIChat() {
       setMessages([{ role: "ai", text: t("ai.greet.kp", { kp: kpInfo.name, desc: kpInfo.desc, subject: kpInfo.subjectName, chapter: kpInfo.chapterName }) }]);
       setMode("guided");
     } else {
-      setMessages([{ role: "ai", text: t("ai.greet.guided") }]);
+      setMessages([{ role: "ai", text: t("ai.greet.free") }]);
     }
   }, [kpInfo, t]);
 
@@ -118,6 +118,7 @@ function AIChat() {
       const subject = kpInfo?.subjectName || undefined;
       const topic = kpInfo?.name || undefined;
       const res = await apiCreateChatSession({
+        type: "Socratic",
         title: mode === "guided" ? (kpInfo?.name || "Guided Learning") : "Free Chat",
         subject,
         topic,
@@ -184,6 +185,7 @@ function AIChat() {
           const subject = kpInfo?.subjectName || undefined;
           const topic = kpInfo?.name || undefined;
           const res = await apiCreateChatSession({
+            type: "Socratic",
             title: mode === "guided" ? (kpInfo?.name || "Guided Learning") : "Free Chat",
             subject,
             topic,
@@ -332,8 +334,8 @@ function AIChat() {
           <div className="border-b border-border/40 bg-background/80 px-4 py-2.5 backdrop-blur-xl">
             <div className="flex gap-1 rounded-2xl bg-muted/60 p-1">
               {[
-                { k: "guided", label: t("ai.mode.guided"), Icon: Sparkles },
                 { k: "free", label: t("ai.mode.free"), Icon: MessageSquare },
+                { k: "guided", label: t("ai.mode.guided"), Icon: Sparkles },
               ].map(({ k, label, Icon }) => (
                 <button
                   key={k}
