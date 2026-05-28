@@ -46,7 +46,7 @@ export function ViewDashboard({ classes, onNavigate, profile }: ViewProps) {
   const allRisky = classes
     .flatMap((c) =>
       c.students
-        .filter((s) => s.risk !== 'low')
+        .filter((s) => s.risk !== 'low' && !s.id.startsWith('ph-'))
         .map((s) => ({ ...s, className: c.name })),
     )
     .sort((a, b) => Number(b.risk === 'high') - Number(a.risk === 'high'))
@@ -56,7 +56,7 @@ export function ViewDashboard({ classes, onNavigate, profile }: ViewProps) {
     <div className="view view-dashboard">
       <div className="view__header">
         <div>
-          <h1 className="view__title">{t('Welcome back, {name}.', { name: profile.name.split(' ')[0] })}</h1>
+          <h1 className="view__title">{t('Welcome back, {name}.', { name: profile.name })}</h1>
           <p className="view__sub">{t('Here\u2019s how your {n} classes are tracking this week.', { n: classes.length })}</p>
         </div>
         <div className="view__actions">

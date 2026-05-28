@@ -37,23 +37,70 @@ function buildMastery(rand: () => number, baseline: number): Record<string, Mast
 
 export function buildStudentFromReal(apiStudent: ApiStudent, classId: string): Student {
   const rand = mulberry32(hashSeed(apiStudent.id));
-  const baseline = Math.min(0.96, Math.max(0.18, rand() * 0.9 + 0.1));
-  const riskRoll = rand();
-  const risk: RiskLevel = riskRoll > 0.92 ? 'high' : riskRoll > 0.78 ? 'medium' : 'low';
-  const sentiment =
-    risk === 'high'   ? -0.4 - rand() * 0.4 :
-    risk === 'medium' ? -0.1 + (rand() - 0.5) * 0.3 :
-                         0.2 + rand() * 0.5;
-  const month = 1 + Math.floor(rand() * 3);
-  const day = 8 + Math.floor(rand() * 22);
+
+  // ── baseline (mastery ratio) ─────────────────────────────────────────────
+  const baseline: number =
+    (apiStudent.progressCount ?? 0) > 0
+      ? Math.min(0.96, Math.max(0.18,
+          ((apiStudent.masteredCount ?? 0) + (apiStudent.partialCount ?? 0) * 0.5)
+          / apiStudent.progressCount!,
+        ))
+      : Math.min(0.96, Math.max(0.18, rand() * 0.9 + 0.1));
+
+  // ── risk ─────────────────────────────────────────────────────────────────
+  const riskMap: Record<string, RiskLevel> = { HIGH: 'high', MEDIUM: 'medium', LOW: 'low' };
+  const risk: RiskLevel = apiStudent.mentalHealthRisk
+    ? (riskMap[apiStudent.mentalHealthRisk] ?? 'low')
+    : (() => { const r = rand(); return r > 0.92 ? 'high' : r > 0.78 ? 'medium' : 'low'; })();
+
+  // ── sentiment ────────────────────────────────────────────────────────────
+  const sentiment: number =
+    apiStudent.mentalHealthScore != null
+      ? Math.max(-1, Math.min(1, apiStudent.mentalHealthScore / 100))
+      : risk === 'high'   ? -0.4 - rand() * 0.4
+      : risk === 'medium' ? -0.1 + (rand() - 0.5) * 0.3
+      :                      0.2 + rand() * 0.5;
+
+  // ── sentiment trend ──────────────────────────────────────────────────────
+  const sentimentTrend: number[] =
+    (apiStudent.mentalHealthTrend?.length ?? 0) > 0
+      ? apiStudent.mentalHealthTrend!.map((s) => Math.max(-1, Math.min(1, s / 100)))
+      : Array.from({ length: 14 }, () => Math.max(-1, Math.min(1, sentiment + (rand() - 0.5) * 0.3)));
+
+  // ── lastActiveHours ──────────────────────────────────────────────────────
+  const lastActiveHours: number =
+    apiStudent.lastActiveAt
+      ? Math.round((Date.now() - new Date(apiStudent.lastActiveAt).getTime()) / 3_600_000)
+      : Math.round(rand() * 96);
+
+  // ── joined ───────────────────────────────────────────────────────────────
+  const joined: string = apiStudent.joinedAt
+    ? apiStudent.joinedAt.slice(0, 10)
+    : (() => {
+        const month = 1 + Math.floor(rand() * 3);
+        const day = 8 + Math.floor(rand() * 22);
+        return `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      })();
+
+  // ── study minutes ────────────────────────────────────────────────────────
+  const studyMinutes: number =
+    apiStudent.studyTimeSeconds != null
+      ? Math.round(apiStudent.studyTimeSeconds / 60)
+      : Math.round(60 + rand() * 380);
+
+  // ── completion rate ──────────────────────────────────────────────────────
+  const completionRate: number =
+    (apiStudent.progressCount ?? 0) > 0
+      ? Math.round(baseline * 100)
+      : Math.round(baseline * 100 - rand() * 8);
 
   return {
     id: apiStudent.id,
     name: apiStudent.name,
     classId,
-    joined: `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-    studyMinutes: Math.round(60 + rand() * 380),
-    lastActiveHours: Math.round(rand() * 96),
+    joined,
+    studyMinutes,
+    lastActiveHours,
     baseline,
     mastery: buildMastery(rand, baseline),
     trend: Array.from({ length: 14 }, (_, k) =>
@@ -61,12 +108,10 @@ export function buildStudentFromReal(apiStudent: ApiStudent, classId: string): S
     ),
     risk,
     sentiment,
-    sentimentTrend: Array.from({ length: 14 }, () =>
-      Math.max(-1, Math.min(1, sentiment + (rand() - 0.5) * 0.3)),
-    ),
+    sentimentTrend,
     streak: Math.round(rand() * 12),
-    completionRate: Math.round(baseline * 100 - rand() * 8),
-    status: rand() > 0.04 ? 'active' : 'paused',
+    completionRate,
+    status: lastActiveHours < 24 * 30 ? 'active' : 'paused',
   };
 }
 

@@ -11,7 +11,6 @@ import {
   Card,
   FilterSelect,
   Icon,
-  ReservedBanner,
   RiskBadge,
   StatTile,
 } from '../components/primitives';
@@ -20,10 +19,9 @@ import { Donut, KeywordCloud, SentimentMeter, Sparkline } from '../components/ch
 interface ClassMentalHealthProps {
   klass: Klass;
   onNavigate: (n: NavState) => void;
-  headless?: boolean;
 }
 
-export function ClassMentalHealth({ klass, onNavigate, headless }: ClassMentalHealthProps) {
+export function ClassMentalHealth({ klass, onNavigate }: ClassMentalHealthProps) {
   const [filter, setFilter] = useState('all');
   const risk = classRiskDist(klass);
   const avgS = classAvgSentiment(klass);
@@ -35,11 +33,6 @@ export function ClassMentalHealth({ klass, onNavigate, headless }: ClassMentalHe
 
   return (
     <div className="class-mh">
-      {!headless && (
-        <ReservedBanner>
-          {t('Mental health module ships UI-first. Sentiment, stress keywords, and risk level shown here are placeholder aggregates — raw conversations are never displayed.')}
-        </ReservedBanner>
-      )}
 
       <div className="mh-grid">
         <Card>
@@ -188,10 +181,6 @@ export function ViewMentalHealth({ classes, onNavigate }: ViewMentalHealthProps)
         </div>
       </div>
 
-      <ReservedBanner>
-        {t('AI emotion analysis (sentiment, stress keywords, risk) ships post-MVP. The interface and data structures are reserved.')}
-      </ReservedBanner>
-
       <div className="kpi-grid">
         <StatTile label={t('Students monitored')} value={totalS} hint={t('{n} classes', { n: classes.length })} />
         <StatTile label={t('Low risk')}    value={totals.low}    hint={t('{p}% of cohort', { p: Math.round((totals.low / totalS) * 100) })} accent="var(--risk-low)" />
@@ -215,7 +204,7 @@ export function ViewMentalHealth({ classes, onNavigate }: ViewMentalHealthProps)
         </div>
       </Card>
 
-      <ClassMentalHealth klass={klass} onNavigate={onNavigate} headless />
+      <ClassMentalHealth klass={klass} onNavigate={onNavigate} />
     </div>
   );
 }

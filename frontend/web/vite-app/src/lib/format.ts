@@ -14,10 +14,10 @@ export function initials(name: string) {
 }
 
 export function fmtMinutes(m: number) {
-  if (m < 60) return `${m}m`;
+  if (m < 60) return t('{n}m', { n: m });
   const h = Math.floor(m / 60);
   const r = m % 60;
-  return r ? `${h}h ${r}m` : `${h}h`;
+  return r ? t('{h}h {m}m', { h, m: r }) : t('{h}h', { h });
 }
 
 export function lastActiveStr(hours: number) {

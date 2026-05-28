@@ -94,31 +94,32 @@ export function App() {
           buildKlassFromStat(s, buildPlaceholderStudents(s.classId, s.totalStudents))
         );
         setRealClasses(klasses);
+        stats.forEach((s) => fetchStudentsForClass(s.classId));
       }).catch(() => { /* silently fall back to mock data */ });
     } else {
       apiGetAdminDashboard().then(setApiSchool).catch(() => {});
     }
   }, [authUser]);
 
-  // Lazy-load real students when navigating to a class detail
-  useEffect(() => {
-    const classId = nav.classId;
-    if (nav.view !== 'class-detail' || !classId) return;
+  function fetchStudentsForClass(classId: string) {
     if (studentCache[classId] || fetchingStudents.current.has(classId)) return;
-
     fetchingStudents.current.add(classId);
     apiGetClassStudents(classId).then((apiStudents) => {
       const students = apiStudents.map((s) => buildStudentFromReal(s, classId));
       setStudentCache((prev) => ({ ...prev, [classId]: students }));
-      // Update the matching class in realClasses with real student objects
       setRealClasses((prev) =>
-        prev
-          ? prev.map((k) => k.id === classId ? { ...k, students } : k)
-          : prev
+        prev ? prev.map((k) => k.id === classId ? { ...k, students } : k) : prev
       );
     }).catch(() => {
       fetchingStudents.current.delete(classId);
     });
+  }
+
+  // Lazy-load real students when navigating to a class detail
+  useEffect(() => {
+    const classId = nav.classId;
+    if (nav.view !== 'class-detail' || !classId) return;
+    fetchStudentsForClass(classId);
   }, [nav.view, nav.classId]);
 
   function handleLogin(token: string, user: AuthUser) {
