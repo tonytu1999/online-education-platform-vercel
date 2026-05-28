@@ -19,9 +19,10 @@ import { LegendRow } from './MentalHealth';
 interface ViewAdminSchoolProps {
   classes: Klass[];
   onNavigate: (n: NavState) => void;
+  schoolNameOverride?: string;
 }
 
-export function ViewAdminSchool({ classes }: ViewAdminSchoolProps) {
+export function ViewAdminSchool({ classes, schoolNameOverride }: ViewAdminSchoolProps) {
   const total = classes.reduce((a, c) => a + c.students.length, 0);
   const grades = [...new Set(classes.map((c) => c.grade))].sort((a, b) => a - b);
 
@@ -66,7 +67,7 @@ export function ViewAdminSchool({ classes }: ViewAdminSchoolProps) {
     <div className="view view-admin">
       <div className="view__header">
         <div>
-          <h1 className="view__title">{schoolName()}</h1>
+          <h1 className="view__title">{schoolNameOverride ?? schoolName()}</h1>
           <p className="view__sub">
             {t('{term} · {students} students · {teachers} teachers · {grades}', {
               term: termLabel(),

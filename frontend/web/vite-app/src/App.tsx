@@ -1,10 +1,17 @@
 // App shell — left nav, top bar, view router.
 
-import { useEffect, useState } from 'react';
-import type { Lang, NavState, Role, TweakState, UserProfile } from './types';
+import { useEffect, useRef, useState } from 'react';
+import type { Klass, Lang, NavState, Role, Student, TweakState, UserProfile } from './types';
 import { CLASSES_ALL, CLASSES_TEACHER } from './lib/data';
 import { hexToSoft } from './lib/format';
 import { classDisplayName, setLang, t, useLang } from './lib/i18n';
+import {
+  apiGetAdminDashboard,
+  apiGetClassStudents,
+  apiGetTeacherDashboard,
+  type ApiSchoolStat,
+} from './lib/api';
+import { buildKlassFromStat, buildPlaceholderStudents, buildStudentFromReal } from './lib/mappers';
 
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
@@ -44,7 +51,7 @@ export function App() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
     try { return JSON.parse(localStorage.getItem('lumen_user') || 'null'); } catch { return null; }
   });
-  const [nav, setNav] = useState<NavState>(() => initialNav(
+  const [nav, setNavRaw] = useState<NavState>(() => initialNav(
     (() => { try { return JSON.parse(localStorage.getItem('lumen_user') || 'null'); } catch { return null; } })()
   ));
   const [schoolJoined, setSchoolJoined] = useState(() =>
@@ -53,6 +60,12 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Real data from backend — fall back to mock if API unavailable
+  const [realClasses, setRealClasses] = useState<Klass[] | null>(null);
+  const [apiSchool, setApiSchool] = useState<ApiSchoolStat | null>(null);
+  const [studentCache, setStudentCache] = useState<Record<string, Student[]>>({});
+  const fetchingStudents = useRef<Set<string>>(new Set());
 
   useLang();
 
@@ -70,18 +83,64 @@ export function App() {
     root.style.setProperty('--accent-strong', hexToSoft(ACCENT, 0.22));
   }, []);
 
+  // Fetch real data when logged in
+  useEffect(() => {
+    if (!authUser) return;
+    const role = deriveRole(authUser);
+
+    if (role === 'teacher') {
+      apiGetTeacherDashboard().then((stats) => {
+        const klasses = stats.map((s) =>
+          buildKlassFromStat(s, buildPlaceholderStudents(s.classId, s.totalStudents))
+        );
+        setRealClasses(klasses);
+      }).catch(() => { /* silently fall back to mock data */ });
+    } else {
+      apiGetAdminDashboard().then(setApiSchool).catch(() => {});
+    }
+  }, [authUser]);
+
+  // Lazy-load real students when navigating to a class detail
+  useEffect(() => {
+    const classId = nav.classId;
+    if (nav.view !== 'class-detail' || !classId) return;
+    if (studentCache[classId] || fetchingStudents.current.has(classId)) return;
+
+    fetchingStudents.current.add(classId);
+    apiGetClassStudents(classId).then((apiStudents) => {
+      const students = apiStudents.map((s) => buildStudentFromReal(s, classId));
+      setStudentCache((prev) => ({ ...prev, [classId]: students }));
+      // Update the matching class in realClasses with real student objects
+      setRealClasses((prev) =>
+        prev
+          ? prev.map((k) => k.id === classId ? { ...k, students } : k)
+          : prev
+      );
+    }).catch(() => {
+      fetchingStudents.current.delete(classId);
+    });
+  }, [nav.view, nav.classId]);
+
   function handleLogin(token: string, user: AuthUser) {
     localStorage.setItem('lumen_token', token);
     localStorage.setItem('lumen_user', JSON.stringify(user));
     setAuthUser(user);
-    setNav(initialNav(user));
+    setRealClasses(null);
+    setApiSchool(null);
+    setStudentCache({});
+    fetchingStudents.current.clear();
+    setNavRaw(initialNav(user));
   }
 
   function handleLogout() {
     localStorage.removeItem('lumen_token');
     localStorage.removeItem('lumen_user');
     setAuthUser(null);
-    setNav({ view: 'dashboard' });
+    setRealClasses(null);
+    setApiSchool(null);
+    setStudentCache({});
+    fetchingStudents.current.clear();
+    setNavRaw({ view: 'dashboard' });
   }
 
   function handleJoinSchool() {
@@ -89,20 +148,25 @@ export function App() {
     setSchoolJoined(true);
   }
 
+  // Intercept navigation to class-detail so we can trigger student fetch
+  function setNav(n: NavState) {
+    setNavRaw(n);
+  }
+
   if (!authUser) return <ViewLogin onLogin={handleLogin} />;
 
   const role = deriveRole(authUser);
 
-  // Teachers see the join-school page once before accessing the app
   if (role === 'teacher' && !schoolJoined) {
     return <ViewJoinSchool onJoin={handleJoinSchool} />;
   }
 
   const isAdmin = role === 'admin';
-  const classes = CLASSES_TEACHER;
-  const allClasses = CLASSES_ALL;
 
-  // Resolve class and student for detail views — search across all classes for admin
+  // Use real classes for teacher when available, otherwise fall back to mock
+  const classes: Klass[] = realClasses ?? CLASSES_TEACHER;
+  const allClasses: Klass[] = isAdmin ? CLASSES_ALL : classes;
+
   const klassSource = isAdmin ? allClasses : classes;
   const klass = nav.classId ? klassSource.find((c) => c.id === nav.classId) : undefined;
   const student = nav.studentId && klass ? klass.students.find((s) => s.id === nav.studentId) : undefined;
@@ -117,26 +181,26 @@ export function App() {
 
   let crumbs: Array<{ label: string; onClick?: () => void }>;
   switch (nav.view) {
-    case 'dashboard':       crumbs = [{ label: t('Dashboard') }]; break;
-    case 'admin-school':    crumbs = [{ label: t('School Overview') }]; break;
-    case 'admin-grade':     crumbs = [home(), { label: t('Grade View') }]; break;
-    case 'admin-classes':   crumbs = [home(), { label: t('All Classes') }]; break;
-    case 'admin-teachers':  crumbs = [home(), { label: t('Teachers') }]; break;
-    case 'classes':         crumbs = [home(), { label: t('Classes') }]; break;
-    case 'class-detail':    crumbs = [
+    case 'dashboard':      crumbs = [{ label: t('Dashboard') }]; break;
+    case 'admin-school':   crumbs = [{ label: t('School Overview') }]; break;
+    case 'admin-grade':    crumbs = [home(), { label: t('Grade View') }]; break;
+    case 'admin-classes':  crumbs = [home(), { label: t('All Classes') }]; break;
+    case 'admin-teachers': crumbs = [home(), { label: t('Teachers') }]; break;
+    case 'classes':        crumbs = [home(), { label: t('Classes') }]; break;
+    case 'class-detail':   crumbs = [
       home(),
       { label: t('Classes'), onClick: () => setNav({ view: isAdmin ? 'admin-classes' : 'classes' }) },
       { label: klass ? classDisplayName(klass) : t('Class') },
     ]; break;
-    case 'student-detail':  crumbs = [
+    case 'student-detail': crumbs = [
       home(),
       { label: klass ? classDisplayName(klass) : t('Class'),
         onClick: () => setNav({ view: 'class-detail', classId: nav.classId }) },
       { label: student ? student.name : t('Student') },
     ]; break;
-    case 'students':        crumbs = [home(), { label: t('Students') }]; break;
-    case 'mental-health':   crumbs = [home(), { label: t('Mental Health') }]; break;
-    default:                crumbs = [home()];
+    case 'students':       crumbs = [home(), { label: t('Students') }]; break;
+    case 'mental-health':  crumbs = [home(), { label: t('Mental Health') }]; break;
+    default:               crumbs = [home()];
   }
 
   const tweak: TweakState = {
@@ -148,6 +212,9 @@ export function App() {
     dark: false,
     lang,
   };
+
+  // Real school name for admin header (falls back to mock via i18n schoolName())
+  const schoolNameOverride = apiSchool?.schoolName;
 
   return (
     <div className="app">
@@ -195,7 +262,7 @@ export function App() {
 
           {/* Admin views */}
           {nav.view === 'admin-school' && (
-            <ViewAdminSchool classes={allClasses} onNavigate={setNav} />
+            <ViewAdminSchool classes={allClasses} onNavigate={setNav} schoolNameOverride={schoolNameOverride} />
           )}
           {nav.view === 'admin-grade' && (
             <ViewAdminGrade classes={allClasses} onNavigate={setNav} />
