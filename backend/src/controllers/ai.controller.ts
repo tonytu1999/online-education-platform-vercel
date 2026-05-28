@@ -11,7 +11,7 @@ type SessionTypeInput = typeof SESSION_TYPES[number];
 export const createChatSession = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const studentId = req.user?.id;
-    const { type, systemPrompt } = req.body;
+    const { type, systemPrompt, subject, topic } = req.body;
 
     if (!studentId) {
       res.status(401).json({ error: 'User not authenticated' });
@@ -29,7 +29,9 @@ export const createChatSession = async (req: AuthRequest, res: Response): Promis
       data: {
         studentId,
         sessionType,
-        ...(systemPrompt && typeof systemPrompt === 'string' ? { systemPrompt } : {})
+        ...(systemPrompt && typeof systemPrompt === 'string' ? { systemPrompt } : {}),
+        ...(subject && typeof subject === 'string' ? { subject: subject.trim() } : {}),
+        ...(topic && typeof topic === 'string' ? { topic: topic.trim() } : {})
       }
     });
 
