@@ -90,17 +90,33 @@ async function main() {
     await prisma.mentalHealth.deleteMany({
         where: {
             studentId: student.id,
-            emotionPolarity: 'POSITIVE',
-            riskLevel: 'LOW',
-            keywords: 'happy, engaged'
+            statusScore: 18,
+            scoreDelta: 6,
+            statusLabel: 'GOOD'
         }
     });
     await prisma.mentalHealth.create({
         data: {
             studentId: student.id,
+            statusScore: 18,
+            scoreDelta: 6,
+            statusLabel: 'GOOD',
+            reasonSummary: 'The student sounds engaged, supported, and steady during the sample wellbeing check.',
+            signals: 'happy, engaged',
             emotionPolarity: 'POSITIVE',
             riskLevel: 'LOW',
-            keywords: 'happy, engaged'
+            keywords: 'happy, engaged',
+            analysisModel: 'seed'
+        }
+    });
+    await prisma.systemConfig.upsert({
+        where: { key: 'MENTAL_HEALTH_SYSTEM_PROMPT' },
+        update: {
+            value: 'You are a student wellbeing analysis assistant. Return JSON only with scoreDelta, statusLabel, reasonSummary, signals, emotionPolarity, and riskLevel. Do not store or repeat the raw dialogue.'
+        },
+        create: {
+            key: 'MENTAL_HEALTH_SYSTEM_PROMPT',
+            value: 'You are a student wellbeing analysis assistant. Return JSON only with scoreDelta, statusLabel, reasonSummary, signals, emotionPolarity, and riskLevel. Do not store or repeat the raw dialogue.'
         }
     });
     // 9. Add Forbidden Keyword

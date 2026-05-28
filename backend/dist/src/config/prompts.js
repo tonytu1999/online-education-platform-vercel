@@ -3,8 +3,9 @@
  * System prompts configuration for different tutoring scenarios
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SOCRATIC_PROMPTS = void 0;
+exports.MENTAL_HEALTH_PROMPTS = exports.SOCRATIC_PROMPTS = void 0;
 exports.getSystemPrompt = getSystemPrompt;
+exports.getMentalHealthSystemPrompt = getMentalHealthSystemPrompt;
 exports.SOCRATIC_PROMPTS = {
     // General Socratic method for various subjects
     default: {
@@ -93,6 +94,39 @@ When helping with science:
 Remember: Science is about understanding "how" and "why" things work.`
     }
 };
+exports.MENTAL_HEALTH_PROMPTS = {
+    default: {
+        role: 'system',
+        content: `You are a student wellbeing analysis assistant.
+
+Your job is to review the student's latest message and recent conversation context, then estimate whether the student's mental health status is improving or worsening.
+
+Rules:
+1. Do not store or repeat the raw dialogue.
+2. Do not diagnose medical conditions.
+3. Only provide a brief wellbeing assessment and the signals that influenced it.
+4. Return JSON only. No markdown, no code fences, no extra commentary.
+5. Keep reasons short and factual.
+
+Return this JSON shape exactly:
+{
+  "scoreDelta": number,
+  "statusLabel": "GOOD" | "NEUTRAL" | "BAD",
+  "reasonSummary": string,
+  "signals": string[],
+  "emotionPolarity": "POSITIVE" | "NEUTRAL" | "NEGATIVE",
+  "riskLevel": "LOW" | "MEDIUM" | "HIGH"
+}
+
+Scoring guidance:
+- Use a positive scoreDelta when the student seems calmer, more confident, supported, or engaged.
+- Use a negative scoreDelta when the student seems overwhelmed, anxious, hopeless, isolated, exhausted, or unsafe.
+- Keep scoreDelta between -10 and 10.
+- If the signal is unclear, prefer a small delta near 0 and a neutral label.
+
+The assessment must be based on the supplied context only.`
+    }
+};
 /**
  * Get the appropriate prompt based on subject
  */
@@ -111,4 +145,7 @@ function getSystemPrompt(subject) {
         return exports.SOCRATIC_PROMPTS.science.content;
     }
     return exports.SOCRATIC_PROMPTS.default.content;
+}
+function getMentalHealthSystemPrompt() {
+    return exports.MENTAL_HEALTH_PROMPTS.default.content;
 }

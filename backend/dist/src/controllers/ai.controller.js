@@ -69,8 +69,13 @@ const getSessionDetails = async (req, res) => {
             res.status(401).json({ error: 'User not authenticated' });
             return;
         }
-        const session = await prisma_1.default.chatSession.findUnique({
-            where: { id: sessionId },
+        const session = await prisma_1.default.chatSession.findFirst({
+            where: {
+                OR: [
+                    { id: sessionId },
+                    { sessionId }
+                ]
+            },
             include: { chatHistories: { orderBy: { createdAt: 'asc' } } }
         });
         if (!session || session.studentId !== studentId) {
@@ -102,8 +107,13 @@ const chat = async (req, res) => {
             return;
         }
         // Verify session belongs to student
-        const session = await prisma_1.default.chatSession.findUnique({
-            where: { id: sessionId }
+        const session = await prisma_1.default.chatSession.findFirst({
+            where: {
+                OR: [
+                    { id: sessionId },
+                    { sessionId }
+                ]
+            }
         });
         if (!session || session.studentId !== studentId) {
             res.status(404).json({ error: 'Session not found' });
@@ -142,14 +152,31 @@ const chat = async (req, res) => {
         });
         // Update session last accessed time
         await prisma_1.default.chatSession.update({
-            where: { id: sessionId },
+            where: { id: session.id },
             data: { lastAccessedAt: new Date() }
         });
+        let mentalHealth = null;
+        try {
+            mentalHealth = await (0, ai_service_1.assessMentalHealth)({
+                studentId,
+                sessionId,
+                message,
+                context: {
+                    source: 'chat',
+                    subject: session.subject,
+                    topic: session.topic
+                }
+            });
+        }
+        catch (mentalHealthError) {
+            console.error('[CHAT] Mental health analysis failed:', mentalHealthError);
+        }
         console.warn('[CHAT] About to send response');
         res.json({
             response: aiResponse,
             modelUsed: model,
-            sessionId
+            sessionId,
+            mentalHealth
         });
     }
     catch (error) {
@@ -172,15 +199,20 @@ const deleteChatSession = async (req, res) => {
             res.status(401).json({ error: 'User not authenticated' });
             return;
         }
-        const session = await prisma_1.default.chatSession.findUnique({
-            where: { id: sessionId }
+        const session = await prisma_1.default.chatSession.findFirst({
+            where: {
+                OR: [
+                    { id: sessionId },
+                    { sessionId }
+                ]
+            }
         });
         if (!session || session.studentId !== studentId) {
             res.status(404).json({ error: 'Session not found' });
             return;
         }
         await prisma_1.default.chatSession.delete({
-            where: { id: sessionId }
+            where: { id: session.id }
         });
         res.json({ message: 'Session deleted successfully' });
     }
@@ -192,8 +224,25 @@ const deleteChatSession = async (req, res) => {
 exports.deleteChatSession = deleteChatSession;
 const checkMentalHealth = async (req, res) => {
     try {
-        // Placeholder mental health analysis - in MVP we return a safe default
-        res.json({ emotionPolarity: 'NEUTRAL', riskLevel: 'LOW', keywords: [] });
+        const studentId = req.user?.id;
+        const message = (req.body?.message || req.body?.text || '').toString().trim();
+        const sessionId = (req.body?.sessionId || req.body?.chatSessionId || '').toString().trim() || undefined;
+        const context = req.body?.context && typeof req.body.context === 'object' ? req.body.context : {};
+        if (!studentId) {
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
+        }
+        if (!message) {
+            res.status(400).json({ error: 'message is required' });
+            return;
+        }
+        const assessment = await (0, ai_service_1.assessMentalHealth)({
+            studentId,
+            sessionId,
+            message,
+            context
+        });
+        res.json(assessment);
     }
     catch (error) {
         res.status(500).json({ error: 'Mental health check failed' });

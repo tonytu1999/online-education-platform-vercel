@@ -42,7 +42,11 @@ export const getTeacherDashboard = async (req: AuthRequest, res: Response): Prom
             c.students.forEach(cs => {
                 const student = cs.student;
                 const latestMentalHealth = student.mentalHealthRecords && student.mentalHealthRecords[student.mentalHealthRecords.length - 1];
-                if (latestMentalHealth && (latestMentalHealth as any).stressLevel && (latestMentalHealth as any).stressLevel > 7) {
+                const latestStatusScore = latestMentalHealth && typeof (latestMentalHealth as any).statusScore === 'number'
+                    ? (latestMentalHealth as any).statusScore
+                    : null;
+                const latestRiskLevel = latestMentalHealth ? (latestMentalHealth as any).riskLevel : null;
+                if ((latestStatusScore !== null && latestStatusScore <= -20) || latestRiskLevel === 'HIGH') {
                     alerts += 1;
                 }
             });
@@ -108,7 +112,11 @@ export const getSchoolAdminDashboard = async (req: AuthRequest, res: Response): 
                 }
                 
                 const latestMentalHealth = student.mentalHealthRecords && student.mentalHealthRecords[student.mentalHealthRecords.length - 1];
-                if (latestMentalHealth && (latestMentalHealth as any).stressLevel && (latestMentalHealth as any).stressLevel > 7) {
+                const latestStatusScore = latestMentalHealth && typeof (latestMentalHealth as any).statusScore === 'number'
+                    ? (latestMentalHealth as any).statusScore
+                    : null;
+                const latestRiskLevel = latestMentalHealth ? (latestMentalHealth as any).riskLevel : null;
+                if ((latestStatusScore !== null && latestStatusScore <= -20) || latestRiskLevel === 'HIGH') {
                     totalAlerts += 1;
                 }
             });

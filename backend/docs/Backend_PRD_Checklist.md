@@ -1,11 +1,11 @@
-### 3.4 Backend ¡X Node.js + Express + MySQL
+### 3.4 Backend ï¿½X Node.js + Express + MySQL
 
 #### Module: User Management
 **Acceptance Criteria**:
 - [x] Four roles: Student, Parent, Teacher, School Admin
 - [x] Role-based access control (JWT + middleware)
-- [x] Parent¡Vchild relationship table
-- [x] Teacher¡Vclass¡Vstudent relationship table
+- [x] Parentï¿½Vchild relationship table
+- [x] Teacherï¿½Vclassï¿½Vstudent relationship table
 
 #### Module: AI Model Integration
 **Acceptance Criteria**:
@@ -13,6 +13,7 @@
 - [x] Integrate OpenAI API (GPT)
 - [x] Integrate OpenRouter API (multi-model routing)
 - [x] Integrate DeepSeek API
+
 - [x] Admin-configurable active model (environment variable or database config)
 - [x] Model-switching logic (select model based on scenario)
 - [x] Encrypted storage of API keys (managed via env)
@@ -21,17 +22,18 @@
 **Acceptance Criteria**:
 - [x] Record student learning behaviors (selecting knowledge points, conversations, assessments, etc.)
 - [x] AI callback to update knowledge-point mastery levels (interface design)
-- [x] Store mastery status hierarchically: Subject ¡÷ Chapter ¡÷ Knowledge Point
+- [x] Store mastery status hierarchically: Subject ï¿½ï¿½ Chapter ï¿½ï¿½ Knowledge Point
 - [x] Provide query interfaces for teachers/parents (summary data only; no conversation details)
 
 #### Module: Mental Health Module
 **Acceptance Criteria**:
-- [x] Design mental health data schema (sentiment polarity, keywords, risk level, timestamp)
-- [x] Provide storage interface (AI analysis not implemented in MVP; interface reserved)
-- [x] Parent-facing query interface (returns empty data or placeholder)
+- [x] Design mental health data schema (cumulative score, delta, status label, summary, timestamp)
+- [x] Provide storage interface (analysis writes aggregate-only records; raw dialogue is not stored)
+- [x] Parent-facing query interface (returns score-based summary data)
 - [x] Teacher-facing query interface (class-level aggregate data; raw conversations excluded)
 - [x] School admin query interface (school/grade-level aggregate data)
-- [x] Mental health data stores aggregate reports only; raw emotion data is not stored
+- [x] Mental health data stores aggregate reports only; raw dialogue is not stored
+- [x] Configurable pre-prompt for wellbeing analysis via `SystemConfig`
 
 #### Module: Prohibited Topic Filter
 **Acceptance Criteria**:

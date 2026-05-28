@@ -8,132 +8,135 @@ This document explains how to initialize, migrate, and seed the backend database
 - `.env` file configured with a valid `DATABASE_URL`
 - The MySQL database must be reachable from your machine
 
-Example:
-
 ```dotenv
 DATABASE_URL="mysql://root:password@23.251.151.121:3306/education_platform"
 ```
 
+---
+
+## Pushing a New Schema to the Database
+
+Use this when you have edited `prisma/schema.prisma` (added a field, changed a type, added an enum, etc.) and want to apply it to the database **without** creating a named migration file.
+
+```bash
+npm run db:push
+```
+
+This runs `prisma db push`, which:
+1. Validates the schema
+2. Generates a new Prisma client
+3. Applies the diff directly to the database
+
+> **Regenerate client separately on Windows if needed**
+> If `db:push` fails with a rename/EPERM error, stop the server, then run:
+> ```bash
+> npx prisma generate
+> npx prisma db push
+> ```
+
+After any schema push, restart the backend server so it picks up the updated Prisma client.
+
+---
+
 ## Available Commands
 
-Run all commands from the `backend` folder.
+Run all commands from the `backend/` folder.
 
-### Initialize database
+| Command | What it does |
+|---|---|
+| `npm run db:push` | Push schema changes directly to the database (no migration file) |
+| `npm run db:migrate` | Apply all pending named migration files |
+| `npm run db:seed` | Load seed data into the database |
+| `npm run db:init` | Apply migrations + seed (first-time setup) |
+| `npm run db:reset` | Drop and recreate the schema (**destroys all data**) |
 
-```bash
-npm run db:init
-```
+---
 
-This runs:
-
-1. `prisma migrate deploy`
-2. `prisma db seed`
-
-Use this when you want to apply all pending migrations and load seed data.
-
-### Apply migrations only
-
-```bash
-npm run db:migrate
-```
-
-This applies all pending Prisma migrations without seeding.
-
-### Run seed only
-
-```bash
-npm run db:seed
-```
-
-This loads the seed data defined in `prisma/seed.ts`.
-
-### Reset the database
-
-```bash
-npm run db:reset
-```
-
-This drops and recreates the database schema using Prisma migrate reset.
-
-Warning: this removes existing data.
-
-## Recommended Workflow
+## Recommended Workflows
 
 ### First-time setup
 
-1. Check `.env` and confirm `DATABASE_URL` is correct.
-2. Run `npm run db:init`.
-3. Start the backend.
-
-### After schema changes
-
-1. Update `prisma/schema.prisma`.
-2. Create a migration.
-3. Run `npm run db:migrate`.
-4. If needed, rerun `npm run db:seed`.
-
-### Fresh local reset
-
-1. Run `npm run db:reset`.
-2. Run `npm run db:init` if the reset does not seed the data you need.
-
-## Windows Prisma Note
-
-On this project, `prisma generate` can fail on Windows with a query engine rename error. For that reason, `npm run db:init` intentionally skips `prisma generate` and uses the stable path:
-
 ```bash
-prisma migrate deploy && prisma db seed
+npm run db:push     # create tables from schema
+npm run db:seed     # load initial data
 ```
 
-If you need to regenerate the Prisma client manually, run:
+### After changing schema.prisma
 
 ```bash
-npx prisma generate
+npm run db:push     # apply changes to DB and regenerate client
 ```
 
-If that fails on Windows, close any process using Prisma, then try again.
+Restart the server after pushing.
+
+### Reseed without touching schema
+
+```bash
+npm run db:seed
+```
+
+### Full local reset
+
+```bash
+npm run db:reset    # drops all tables
+npm run db:push     # recreate from schema
+npm run db:seed     # reload seed data
+```
+
+---
 
 ## Seed Data
 
-The seed script creates:
+The seed script (`prisma/seed.ts`) is idempotent — safe to run multiple times.
 
-- School
-- Admin user
-- Teacher user
-- Student user
-- Parent user
-- Parent-child relationship
-- Class and enrollment
-- Sample curriculum data
-- Sample progress record
-- Sample mental health record
-- Forbidden keyword entry
+**Users** (all use password: `password123`)
+
+| Email | Role |
+|---|---|
+| admin@school.com | SCHOOL_ADMIN |
+| teacher@school.com | TEACHER |
+| student@school.com | STUDENT |
+| parent@family.com | PARENT |
+
+**Subjects and Knowledge Points**
+
+| Subject | Chapters | Knowledge Points |
+|---|---|---|
+| Chinese Language | Reading Comprehension, Writing, Language Conventions | 9 total |
+| English Language | Reading, Writing, Listening and Speaking | 8 total |
+| Mathematics | Algebra, Geometry, Statistics and Probability | 9 total |
+
+**Other seed data**
+- School (No. 1 High School)
+- Class (Math 101) with teacher and student enrolled
+- Parent–child relationship
+- Sample progress record for Alice on Solving Linear Equations
+- Sample mental health record for Alice
+- Forbidden keywords: violence, suicide, self-harm, drugs
+- System config: mental health prompt
+
+---
+
+## Windows Prisma Note
+
+`prisma generate` can fail on Windows with a query engine rename error if the server is running.
+
+1. Stop the backend server
+2. Run `npx prisma generate`
+3. Restart the server
+
+---
 
 ## Troubleshooting
 
-### Database connection fails
-
+**Database connection fails**
 - Confirm `DATABASE_URL` is correct
-- Confirm the database host is reachable
-- Check firewall and Cloud SQL access rules
+- Check the database host is reachable and firewall rules allow your IP
 
-### Migration runs but seed fails
+**`db:push` fails with enum/type errors**
+- MySQL does not allow `DEFAULT` values on `TEXT` columns — use `@db.Text` without `@default("")`
+- Enums must be defined at the schema level before referencing them in models
 
-- Verify required tables exist
-- Make sure the database user has insert permissions
-- Re-run `npm run db:seed` after fixing the issue
-
-### Prisma generate fails on Windows
-
-- Stop the backend process
-- Close editors or terminals using the Prisma client
-- Retry `npx prisma generate`
-
-## Current Working Commands
-
-```bash
-npm run db:migrate
-npm run db:seed
-npm run db:init
-npm run db:reset
-```
+**Seed fails after a schema change**
+- Run `npm run db:push` first to ensure the table structure matches the schema
+- Then run `npm run db:seed`

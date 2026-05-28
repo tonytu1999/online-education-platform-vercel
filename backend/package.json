@@ -8,6 +8,7 @@
         "dev": "nodemon src/index.ts",
         "start": "node dist/src/index.js",
         "prisma:generate": "prisma generate",
+        "db:push": "prisma db push",
         "db:migrate": "prisma migrate deploy",
         "db:seed": "prisma db seed",
         "db:init": "prisma migrate deploy && prisma db seed",

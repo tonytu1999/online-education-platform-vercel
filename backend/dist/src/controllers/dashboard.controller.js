@@ -42,7 +42,11 @@ const getTeacherDashboard = async (req, res) => {
             c.students.forEach(cs => {
                 const student = cs.student;
                 const latestMentalHealth = student.mentalHealthRecords && student.mentalHealthRecords[student.mentalHealthRecords.length - 1];
-                if (latestMentalHealth && latestMentalHealth.stressLevel && latestMentalHealth.stressLevel > 7) {
+                const latestStatusScore = latestMentalHealth && typeof latestMentalHealth.statusScore === 'number'
+                    ? latestMentalHealth.statusScore
+                    : null;
+                const latestRiskLevel = latestMentalHealth ? latestMentalHealth.riskLevel : null;
+                if ((latestStatusScore !== null && latestStatusScore <= -20) || latestRiskLevel === 'HIGH') {
                     alerts += 1;
                 }
             });
@@ -101,7 +105,11 @@ const getSchoolAdminDashboard = async (req, res) => {
                     studentCountWithScores += 1;
                 }
                 const latestMentalHealth = student.mentalHealthRecords && student.mentalHealthRecords[student.mentalHealthRecords.length - 1];
-                if (latestMentalHealth && latestMentalHealth.stressLevel && latestMentalHealth.stressLevel > 7) {
+                const latestStatusScore = latestMentalHealth && typeof latestMentalHealth.statusScore === 'number'
+                    ? latestMentalHealth.statusScore
+                    : null;
+                const latestRiskLevel = latestMentalHealth ? latestMentalHealth.riskLevel : null;
+                if ((latestStatusScore !== null && latestStatusScore <= -20) || latestRiskLevel === 'HIGH') {
                     totalAlerts += 1;
                 }
             });

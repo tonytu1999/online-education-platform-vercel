@@ -97,22 +97,34 @@ export async function apiUpdateProgress(body: {
 
 // ── AI ────────────────────────────────────────────────────────────────
 
+export interface ApiMentalHealthAssessment {
+  currentScore: number;
+  scoreDelta: number;
+  statusLabel: 'GOOD' | 'NEUTRAL' | 'BAD';
+  reasonSummary: string;
+  signals: string[];
+  emotionPolarity: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  recordId: string;
+  modelUsed: string;
+}
+
 export async function apiChat(body: {
   studentId: string;
   message: string;
   context?: Record<string, unknown>;
-}): Promise<{ response: string; modelUsed: string }> {
+}): Promise<{ response: string; modelUsed: string; mentalHealth?: ApiMentalHealthAssessment }> {
   return request("/ai/chat", { method: "POST", body: JSON.stringify(body) });
 }
 
-export async function apiCheckMentalHealth(studentId: string): Promise<{
-  emotionPolarity: string;
-  riskLevel: string;
-  keywords: string[];
-}> {
+export async function apiCheckMentalHealth(body: {
+  message: string;
+  sessionId?: string;
+  context?: Record<string, unknown>;
+}): Promise<ApiMentalHealthAssessment> {
   return request("/ai/mental-health", {
     method: "POST",
-    body: JSON.stringify({ studentId }),
+    body: JSON.stringify(body),
   });
 }
 

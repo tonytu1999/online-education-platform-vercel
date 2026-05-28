@@ -30,7 +30,7 @@ const authenticate = (req, res, next) => {
 exports.authenticate = authenticate;
 const authorizeRole = (roles) => {
     return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
+        if (!req.user || !req.user.role || !roles.includes(req.user.role)) {
             res.status(403).json({ error: 'Forbidden' });
             return;
         }

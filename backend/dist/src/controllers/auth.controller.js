@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
+exports.selectRole = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
@@ -12,17 +12,11 @@ const register = async (req, res) => {
         console.log('Register request received', req.body);
         const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
         const email = typeof req.body.email === 'string' ? req.body.email.trim() : undefined;
-        const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : undefined;
+        const phone = typeof req.body.phone === 'string' && req.body.phone.trim() !== '' ? req.body.phone.trim() : undefined;
         const password = typeof req.body.password === 'string' ? req.body.password : '';
-        const role = typeof req.body.role === 'string' ? req.body.role : 'STUDENT';
         if (!name || !email || !password) {
-            console.warn('Register validation failed', { name, email, phone, role });
+            console.warn('Register validation failed', { name, email, phone });
             res.status(400).json({ error: 'name, email, and password are required' });
-            return;
-        }
-        if (!['STUDENT', 'PARENT', 'TEACHER', 'SCHOOL_ADMIN'].includes(role)) {
-            console.warn('Register validation failed: invalid role', { role });
-            res.status(400).json({ error: 'Invalid role' });
             return;
         }
         const existingEmailUser = await prisma_1.default.user.findUnique({ where: { email } });
@@ -46,11 +40,10 @@ const register = async (req, res) => {
                 name,
                 email,
                 phone,
-                password: hashedPassword,
-                role
+                password: hashedPassword
             }
         });
-        console.log('Register success', { userId: user.id, email, phone, role });
+        console.log('Register success', { userId: user.id, email, phone });
         res.status(201).json({ message: 'User registered successfully', userId: user.id });
     }
     catch (error) {
@@ -107,3 +100,34 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+const VALID_ROLES = ['STUDENT', 'PARENT', 'TEACHER', 'SCHOOL_ADMIN'];
+const selectRole = async (req, res) => {
+    try {
+        const userId = typeof req.body.userId === 'string' ? req.body.userId.trim() : '';
+        const role = typeof req.body.role === 'string' ? req.body.role.trim() : '';
+        if (!userId || !role) {
+            res.status(400).json({ error: 'userId and role are required' });
+            return;
+        }
+        if (!VALID_ROLES.includes(role)) {
+            res.status(400).json({ error: `role must be one of: ${VALID_ROLES.join(', ')}` });
+            return;
+        }
+        const user = await prisma_1.default.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+        await prisma_1.default.user.update({
+            where: { id: userId },
+            data: { role: role }
+        });
+        console.log('Role selected', { userId, role });
+        res.json({ message: 'Role updated successfully', userId, role });
+    }
+    catch (error) {
+        console.error('selectRole error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.selectRole = selectRole;

@@ -78,9 +78,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     console.log('Login request received', req.body);
 
     const { email, phone, password } = req.body;
+
+    if (!email && !phone) {
+      res.status(400).json({ error: 'Email or phone is required' });
+      return;
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: email ? [{ email }] : phone ? [{ phone }] : []
+        OR: [
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : [])
+        ]
       }
     });
 

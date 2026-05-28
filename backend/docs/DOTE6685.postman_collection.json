@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "59930cc8-e94c-48ed-9644-27121053df2c",
+    "_postman_id": "f49587de-3906-4d7f-bfd8-1f4fc8f5041b",
     "name": "DOTE6685",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "17680738",
-    "_collection_link": "https://go.postman.co/collection/17680738-59930cc8-e94c-48ed-9644-27121053df2c?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/17680738-f49587de-3906-4d7f-bfd8-1f4fc8f5041b?source=collection_link"
   },
   "item": [
     {
@@ -43,7 +43,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Joh\",\n  \"email\": \"john2@example.com\",\n  \"phone\": \"\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"name\": \"Joh123\",\n  \"email\": \"jo23@example.com\",\n  \"phone\": \"\",\n  \"password\": \"password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -148,7 +148,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@school.com\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"email\": \"jo23@example.com\",\n  \"password\": \"password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -547,18 +547,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "let jsonData;",
-                  "try {",
-                  "    jsonData = pm.response.json();",
-                  "} catch (e) {",
-                  "    throw new Error('Response body is not valid JSON');",
-                  "}",
-                  "",
                   "const sessionId = jsonData && jsonData.session && (jsonData.session.id || jsonData.session.sessionId);",
-                  "if (!sessionId) {",
-                  "    throw new Error('Response JSON does not contain a session id');",
-                  "}",
-                  "",
                   "pm.collectionVariables.set('chatSessionId', String(sessionId));"
                 ],
                 "type": "text/javascript",
@@ -587,7 +576,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Grammer Help\",\n  \"subject\": \"English\",\n  \"topic\": \"Past Tense\"\n}",
+              "raw": "{}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -731,13 +720,23 @@
           "response": []
         },
         {
-          "name": "6. Mental Health Check (Placeholder)",
+          "name": "6. Mental Health Check",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"text\":\"I am feeling sad and very stressed about exams.\",\r\n    \"useOpenRouter\": true \r\n}",
+              "raw": "{\r\n    \"sessionId\": \"SESSION_ID_HERE\",\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -754,7 +753,7 @@
                 "mental-health"
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - { \"emotionPolarity\": \"NEUTRAL\", \"riskLevel\": \"LOW\", \"keywords\": [] }"
+            "description": "Auth: Required\nSuccess Response: 200 OK - { \"currentScore\": -12, \"scoreDelta\": -4, \"statusLabel\": \"BAD\", \"reasonSummary\": \"The student mentioned exam pressure and sleep trouble, which suggests a worsening wellbeing trend.\", \"signals\": [\"exam pressure\", \"sleep trouble\"], \"emotionPolarity\": \"NEGATIVE\", \"riskLevel\": \"HIGH\", \"recordId\": \"mental-health-record-id\", \"modelUsed\": \"gpt-4o-mini\" }"
           },
           "response": []
         }
