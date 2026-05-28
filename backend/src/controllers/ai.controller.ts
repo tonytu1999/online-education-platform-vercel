@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
-import { assessMentalHealth, assessSessionMentalHealth, generateSocraticResponse } from '../services/ai.service';
-import { isMessageForbidden } from '../services/filter.service';
+import { assessMentalHealth, assessSessionMentalHealth, analyzeLearningBehavior, generateSocraticResponse, generateMentalHealthResponse } from '../services/ai.service';
+import { isResponseForbidden } from '../services/filter.service';
 import prisma from '../config/prisma';
 
 const SESSION_TYPES = ['Socratic', 'Mental'] as const;
@@ -122,6 +122,7 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     // Verify session belongs to student
+    // Cast includes sessionType — regenerate the Prisma client (`npx prisma generate`) to remove this cast
     const session = await prisma.chatSession.findFirst({
       where: {
         OR: [
@@ -129,18 +130,10 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
           { sessionId }
         ]
       }
-    });
+    }) as (Awaited<ReturnType<typeof prisma.chatSession.findFirst>> & { sessionType: string }) | null;
 
     if (!session || session.studentId !== studentId) {
       res.status(404).json({ error: 'Session not found' });
-      return;
-    }
-
-    // 1. Prohibited Topic Filter
-    console.warn('[CHAT] About to check forbidden');
-    const isForbidden = await isMessageForbidden(message);
-    if (isForbidden) {
-      res.status(403).json({ error: 'Message contains prohibited content and has been blocked.' });
       return;
     }
 
@@ -151,8 +144,7 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       : 1;
     const isFirstMessage = priorUserCount === 0;
 
-    // Save user message
-    console.warn('[CHAT] About to save user message');
+    // Save user message — user input is never blocked so students can always express themselves
     await prisma.chatHistory.create({
       data: {
         sessionId: session.id,
@@ -162,12 +154,19 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       }
     });
 
-    console.warn('[CHAT] About to generate Socratic response');
+    console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
 
-    // 2. Generate Socratic Response using conversation history
-    const { response: aiResponse, model } = await generateSocraticResponse(message, sessionId);
+    // Generate response based on session type
+    let { response: aiResponse, model } = isSocratic
+      ? await generateSocraticResponse(message, session.id)
+      : await generateMentalHealthResponse(message, session.id);
 
     console.warn('[CHAT] Generated response');
+
+    // Filter AI response — replace with a safe message if it contains forbidden content
+    if (await isResponseForbidden(aiResponse)) {
+      aiResponse = "I'm here for you and I want to make sure you're safe. Please reach out to a trusted adult, school counsellor, or a crisis helpline — you don't have to face this alone.";
+    }
 
     // Save AI response
     await prisma.chatHistory.create({
@@ -193,23 +192,26 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       }
     });
 
-    // 3. Mental health analysis — Socratic sessions only
-    let mentalHealth = null;
+    // 3. Learning behaviour analysis — Socratic sessions only (fire-and-forget)
     if (isSocratic) {
-      try {
-        mentalHealth = await assessMentalHealth({
-          studentId,
-          sessionId: session.id,
-          message,
-          context: {
-            source: 'chat',
-            subject: session.subject,
-            topic: session.topic
-          }
-        });
-      } catch (mentalHealthError) {
-        console.error('[CHAT] Mental health analysis failed:', mentalHealthError);
-      }
+      analyzeLearningBehavior(studentId, session.id).catch(() => {});
+    }
+
+    // 4. Mental health analysis — runs for all session types
+    let mentalHealth = null;
+    try {
+      mentalHealth = await assessMentalHealth({
+        studentId,
+        sessionId: session.id,
+        message,
+        context: {
+          source: 'chat',
+          subject: session.subject,
+          topic: session.topic
+        }
+      });
+    } catch (mentalHealthError) {
+      console.error('[CHAT] Mental health analysis failed:', mentalHealthError);
     }
 
     console.warn('[CHAT] About to send response');

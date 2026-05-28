@@ -72,6 +72,32 @@ All protected routes require an `Authorization` header with a Bearer token:
   { "childId": "uuid-of-student" }
   ```
 - **Success Response**: `200 OK` - `{ "message": "Child bound successfully" }`
+- **Error Responses**:
+  - `400` — `childId` missing, or the target user is not a `STUDENT`
+  - `403` — caller is not a `PARENT`
+  - `404` — no user found with that `childId`
+  - `409` — child is already linked to this parent
+
+### 4. Get My Children (Parent Only)
+- **URL**: `/users/children`
+- **Method**: `GET`
+- **Auth**: Required (Role: `PARENT`)
+- **Success Response**: `200 OK` — Array of linked student profiles.
+  ```json
+  [
+    { "id": "uuid", "name": "Chan Michael", "email": "michael@student.com", "phone": null }
+  ]
+  ```
+- **Error**: `403` — caller is not a `PARENT`
+
+### 5. Unbind Child (Parent Only)
+- **URL**: `/users/children/:childId`
+- **Method**: `DELETE`
+- **Auth**: Required (Role: `PARENT`)
+- **Success Response**: `200 OK` - `{ "message": "Child unbound successfully" }`
+- **Error Responses**:
+  - `403` — caller is not a `PARENT`
+  - `404` — child is not linked to this parent
 
 ---
 
@@ -133,7 +159,9 @@ All protected routes require an `Authorization` header with a Bearer token:
 
 ## Learning Progress
 
-### 1. Update Progress
+Progress records are written automatically after every Socratic chat message — the AI identifies which curriculum knowledge points were engaged and rates the student's mastery level. They can also be written manually via the update endpoint.
+
+### 1. Update Progress (Manual)
 - **URL**: `/progress/update`
 - **Method**: `POST`
 - **Auth**: Required
@@ -142,17 +170,197 @@ All protected routes require an `Authorization` header with a Bearer token:
   {
     "studentId": "uuid",
     "knowledgePointId": "uuid",
-    "mastery": "PARTIAL", // UNMASTERED, PARTIAL, MASTERED
+    "mastery": "PARTIAL",
     "studyTimeSeconds": 300
   }
   ```
+  `mastery` values: `UNMASTERED`, `PARTIAL`, `MASTERED`
 - **Success Response**: `200 OK` - Updated progress object
 
-### 2. Get Student Progress
+### 2. Get Student Progress (Flat List)
 - **URL**: `/progress/:studentId`
 - **Method**: `GET`
+- **Auth**: Required (STUDENT: own record only; TEACHER / PARENT / SCHOOL_ADMIN: any student)
+- **Success Response**: `200 OK` - Array of progress records ordered by `updatedAt` desc, each including full knowledge point → chapter → subject chain.
+
+### 3. Get Student Learning Report (Grouped)
+- **URL**: `/progress/:studentId/report`
+- **Method**: `GET`
+- **Auth**: Required (STUDENT: own record only; TEACHER / PARENT / SCHOOL_ADMIN: any student)
+- **Success Response**: `200 OK`
+  ```json
+  {
+    "student": { "id": "uuid", "name": "Chan Michael" },
+    "summary": {
+      "totalKnowledgePoints": 5,
+      "mastered": 2,
+      "partial": 2,
+      "unmastered": 1,
+      "totalStudyTimeSeconds": 300
+    },
+    "subjects": [
+      {
+        "subject": "Mathematics",
+        "chapters": [
+          {
+            "chapter": "Algebra",
+            "knowledgePoints": [
+              {
+                "name": "Solving Linear Equations",
+                "mastery": "MASTERED",
+                "studyTimeSeconds": 180,
+                "updatedAt": "2026-05-28T10:00:00Z"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+---
+
+## Curriculum Management
+
+The curriculum hierarchy is **Subject → Chapter → Knowledge Point**.  
+All endpoints require authentication. Write operations are restricted by role.
+
+| Operation | Allowed Roles |
+|-----------|--------------|
+| GET (all read) | Any authenticated user |
+| POST / PUT | `TEACHER`, `SCHOOL_ADMIN` |
+| DELETE | `SCHOOL_ADMIN` |
+
+### Subjects
+
+#### 1. Get All Subjects (Full Tree)
+- **URL**: `/curriculum/subjects`
+- **Method**: `GET`
 - **Auth**: Required
-- **Success Response**: `200 OK` - Array of progress objects (includes knowledge point/chapter details)
+- **Success Response**: `200 OK` — Array of subjects, each with nested chapters and knowledge points, ordered alphabetically.
+  ```json
+  [
+    {
+      "id": "uuid",
+      "name": "Mathematics",
+      "chapters": [
+        {
+          "id": "uuid",
+          "name": "Algebra",
+          "subjectId": "uuid",
+          "knowledgePoints": [
+            { "id": "uuid", "name": "Solving Linear Equations", "desc": "...", "chapterId": "uuid" }
+          ]
+        }
+      ]
+    }
+  ]
+  ```
+
+#### 2. Get Subject by ID
+- **URL**: `/curriculum/subjects/:id`
+- **Method**: `GET`
+- **Auth**: Required
+- **Success Response**: `200 OK` — Single subject with nested chapters and knowledge points.
+- **Error**: `404` — Subject not found.
+
+#### 3. Create Subject
+- **URL**: `/curriculum/subjects`
+- **Method**: `POST`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Physics" }
+  ```
+- **Success Response**: `201 Created` — Subject object `{ id, name }`.
+
+#### 4. Update Subject
+- **URL**: `/curriculum/subjects/:id`
+- **Method**: `PUT`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Advanced Physics" }
+  ```
+- **Success Response**: `200 OK` — Updated subject object.
+
+#### 5. Delete Subject
+- **URL**: `/curriculum/subjects/:id`
+- **Method**: `DELETE`
+- **Auth**: Required (Role: `SCHOOL_ADMIN`)
+- **Success Response**: `204 No Content`
+- **Error**: `404` — Subject not found.
+
+### Chapters
+
+#### 6. Get Chapters for Subject
+- **URL**: `/curriculum/subjects/:subjectId/chapters`
+- **Method**: `GET`
+- **Auth**: Required
+- **Success Response**: `200 OK` — Array of chapters with their knowledge points, ordered alphabetically.
+
+#### 7. Create Chapter
+- **URL**: `/curriculum/subjects/:subjectId/chapters`
+- **Method**: `POST`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Quadratic Equations" }
+  ```
+- **Success Response**: `201 Created` — Chapter object `{ id, name, subjectId }`.
+
+#### 8. Update Chapter
+- **URL**: `/curriculum/chapters/:id`
+- **Method**: `PUT`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Quadratic & Cubic Equations" }
+  ```
+- **Success Response**: `200 OK` — Updated chapter object.
+
+#### 9. Delete Chapter
+- **URL**: `/curriculum/chapters/:id`
+- **Method**: `DELETE`
+- **Auth**: Required (Role: `SCHOOL_ADMIN`)
+- **Success Response**: `204 No Content`
+- **Error**: `404` — Chapter not found.
+
+### Knowledge Points
+
+#### 10. Get Knowledge Points for Chapter
+- **URL**: `/curriculum/chapters/:chapterId/knowledge-points`
+- **Method**: `GET`
+- **Auth**: Required
+- **Success Response**: `200 OK` — Array of knowledge points `{ id, name, desc, chapterId }`, ordered alphabetically.
+
+#### 11. Create Knowledge Point
+- **URL**: `/curriculum/chapters/:chapterId/knowledge-points`
+- **Method**: `POST`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Completing the Square", "desc": "A method to solve quadratic equations by rewriting them as a perfect square." }
+  ```
+- **Success Response**: `201 Created` — Knowledge point object `{ id, name, desc, chapterId }`.
+
+#### 12. Update Knowledge Point
+- **URL**: `/curriculum/knowledge-points/:id`
+- **Method**: `PUT`
+- **Auth**: Required (Role: `TEACHER`, `SCHOOL_ADMIN`)
+- **Body**:
+  ```json
+  { "name": "Completing the Square", "desc": "Updated description." }
+  ```
+- **Success Response**: `200 OK` — Updated knowledge point object.
+
+#### 13. Delete Knowledge Point
+- **URL**: `/curriculum/knowledge-points/:id`
+- **Method**: `DELETE`
+- **Auth**: Required (Role: `SCHOOL_ADMIN`)
+- **Success Response**: `204 No Content`
+- **Error**: `404` — Knowledge point not found.
 
 ---
 
@@ -223,8 +431,9 @@ All protected routes require an `Authorization` header with a Bearer token:
   ```json
   { "plan": "PREMIUM" }
   ```
-- **Current Controller Behavior**: accepts `BASIC` or `PREMIUM` as input and returns the updated plan value.
+  `plan` values: `FREE`, `PREMIUM`
 - **Success Response**: `200 OK` - `{ "message": "Subscription updated successfully", "plan": "PREMIUM" }`
+- **Error**: `400` — invalid plan value
 
 ---
 
@@ -265,193 +474,124 @@ All protected routes require an `Authorization` header with a Bearer token:
 
 ---
 
-## AI & Socratic Tutoring (Session-Based with Memory)
+## AI Chat (Session-Based)
 
-### 0. AI Test Endpoint
-- **URL**: `/ai/test`
-- **Method**: `GET`
-- **Auth**: Required
-- **Success Response**: `200 OK` - `{ "message": "AI routes are working!", "userId": "user-uuid" }`
+There are two session types, set once at creation. The single send-message endpoint handles both — the server routes internally based on `sessionType`.
 
----
-
-All AI endpoints maintain conversation history. Each session stores the last 10 messages for context-aware responses.
+| `type` | AI behaviour | Mental health scoring | Learning analysis |
+|---|---|---|---|
+| `Socratic` | Guided questioning tutor | ✓ per message | ✓ per message (auto) |
+| `Mental` | Empathetic wellbeing companion | ✓ per message | — |
 
 ### 1. Create Chat Session
 - **URL**: `/ai/sessions`
 - **Method**: `POST`
 - **Auth**: Required
-- **Body**: 
+- **Body**:
   ```json
-  {
-    "title": "Algebra Help",
-    "subject": "Mathematics",
-    "topic": "Quadratic Equations"
-  }
+  { "type": "Socratic" }
   ```
+  or
+  ```json
+  { "type": "Mental" }
+  ```
+- **Notes**:
+  - `Socratic` sessions auto-generate their title from the first user message.
+  - `Mental` sessions keep the default title `"New Chat"`.
 - **Success Response**: `201 Created`
   ```json
   {
     "session": {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "sessionId": "uuid-string",
-      "studentId": "student-id",
-      "title": "Algebra Help",
-      "subject": "Mathematics",
-      "topic": "Quadratic Equations",
-      "createdAt": "2026-05-25T10:30:00Z",
-      "updatedAt": "2026-05-25T10:30:00Z"
+      "id": "uuid",
+      "sessionId": "uuid",
+      "studentId": "uuid",
+      "sessionType": "SOCRATIC",
+      "title": "New Chat",
+      "subject": null,
+      "topic": null,
+      "createdAt": "2026-05-28T10:00:00Z",
+      "updatedAt": "2026-05-28T10:00:00Z"
     }
   }
   ```
 
-### 2. Get All Student Sessions
+### 2. Get All My Sessions
 - **URL**: `/ai/sessions`
 - **Method**: `GET`
 - **Auth**: Required
-- **Success Response**: `200 OK`
-  ```json
-  {
-    "sessions": [
-      {
-        "id": "550e8400-e29b-41d4-a716-446655440000",
-        "sessionId": "uuid-string",
-        "studentId": "student-id",
-        "title": "Algebra Help",
-        "subject": "Mathematics",
-        "topic": "Quadratic Equations",
-        "createdAt": "2026-05-25T10:30:00Z",
-        "lastAccessedAt": "2026-05-25T11:45:00Z",
-        "chatHistories": [
-          {
-            "id": "msg-id",
-            "message": "What is a quadratic equation?",
-            "sender": "USER",
-            "createdAt": "2026-05-25T11:45:00Z"
-          }
-        ]
-      }
-    ]
-  }
-  ```
+- **Success Response**: `200 OK` — array of sessions ordered by `lastAccessedAt` desc, each including the most recent message preview.
 
-### 3. Get Session Details with Full History
+### 3. Get Session Details
 - **URL**: `/ai/sessions/:sessionId`
 - **Method**: `GET`
 - **Auth**: Required
-- **Success Response**: `200 OK`
-  ```json
-  {
-    "session": {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "sessionId": "uuid-string",
-      "studentId": "student-id",
-      "title": "Algebra Help",
-      "subject": "Mathematics",
-      "topic": "Quadratic Equations",
-      "createdAt": "2026-05-25T10:30:00Z",
-      "lastAccessedAt": "2026-05-25T11:45:00Z",
-      "chatHistories": [
-        {
-          "id": "msg-1",
-          "message": "What is a quadratic equation?",
-          "sender": "USER",
-          "createdAt": "2026-05-25T10:31:00Z"
-        },
-        {
-          "id": "msg-2",
-          "message": "Great question! Think about what makes an equation 'quadratic'. What do you notice about equations with x²?",
-          "sender": "AI",
-          "modelUsed": "gpt-4o-mini",
-          "createdAt": "2026-05-25T10:32:00Z"
-        }
-      ]
-    }
-  }
-  ```
+- **Success Response**: `200 OK` — session object with full `chatHistories` ordered by `createdAt` asc.
 
-### 4. Send Message in Session (Automatic Context Memory)
+### 4. Send Message
 - **URL**: `/ai/chat`
 - **Method**: `POST`
 - **Auth**: Required
-- **Body**: 
+- **Body**:
   ```json
   {
-    "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-    "message": "So the general form is ax² + bx + c = 0?"
+    "sessionId": "uuid",
+    "message": "I cannot understand quadratic equations at all."
   }
   ```
+- **Behaviour by session type**:
+  - **Socratic** — AI responds with a guiding question. Title is set from the first message. After the AI reply, learning behaviour analysis runs in the background: the conversation is sent to the AI to identify which curriculum knowledge points were engaged and the student's mastery level (`UNMASTERED / PARTIAL / MASTERED`). `Progress` records are upserted and study time incremented by 60 s per exchange.
+  - **Mental** — AI responds as an empathetic wellbeing companion. No learning analysis.
+  - **Both** — sentiment is analysed (AFINN + academic extras) and a `mentalHealth` record is created and returned.
 - **Success Response**: `200 OK`
   ```json
   {
-    "response": "Perfect! You've got it. Now, what do you think 'a', 'b', and 'c' represent in that equation?",
-    "modelUsed": "gpt-4o-mini",
-    "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+    "response": "That sounds really tough. What part feels most confusing right now?",
+    "modelUsed": "liquid/lfm-2.5-1.2b-instruct:free",
+    "sessionId": "uuid",
     "mentalHealth": {
-      "currentScore": -12,
-      "scoreDelta": -4,
       "statusLabel": "BAD",
-      "reasonSummary": "The student mentioned exam pressure and sleep trouble, which suggests a worsening wellbeing trend.",
-      "signals": ["exam pressure", "sleep trouble"],
       "emotionPolarity": "NEGATIVE",
       "riskLevel": "HIGH",
-      "recordId": "mental-health-record-id",
-      "modelUsed": "gpt-4o-mini"
+      "scoreDelta": -8,
+      "currentScore": -8,
+      "reasonSummary": "Sentiment score -0.80 based on: overwhelmed, hard, punish.",
+      "signals": ["overwhelmed", "hard", "punish"],
+      "recordId": "uuid",
+      "modelUsed": "afinn-sentiment-v2"
     }
   }
   ```
-- **Error Response**: `403 Forbidden` (Content Filtering)
-  ```json
-  {
-    "error": "Message contains prohibited content and has been blocked."
-  }
-  ```
+- **Error Responses**:
+  - `400` — `sessionId` or `message` missing
+  - `403` — message blocked by content filter
+  - `404` — session not found
 
-### 5. Delete Chat Session
+### 5. Delete Session
 - **URL**: `/ai/sessions/:sessionId`
 - **Method**: `DELETE`
 - **Auth**: Required
-- **Success Response**: `200 OK`
-  ```json
-  {
-    "message": "Session deleted successfully"
-  }
-  ```
+- **Success Response**: `200 OK` — `{ "message": "Session deleted successfully" }`
 
-### 6. Mental Health Check
-- **URL**: `/ai/mental-health`
+### 6. Analyse Whole-Session Mental Health (On-Demand)
+- **URL**: `/ai/sessions/:sessionId/mental-health`
 - **Method**: `POST`
 - **Auth**: Required
-- **Request Body**:
-  ```json
-  {
-    "sessionId": "session-or-chat-id",
-    "message": "I feel overwhelmed by exams and cannot sleep.",
-    "context": {
-      "subject": "Mathematics",
-      "topic": "Exponential Functions"
-    }
-  }
-  ```
+- **Body**: none
+- **Notes**: Runs AFINN sentiment across **all** student messages in the session and stores one record. Useful for a summary report after a session ends.
 - **Success Response**: `200 OK`
   ```json
   {
-    "currentScore": -12,
-    "scoreDelta": -4,
+    "sentimentScore": -0.72,
+    "scoreDelta": -7,
+    "currentScore": -15,
     "statusLabel": "BAD",
-    "reasonSummary": "The student mentioned exam pressure and sleep trouble, which suggests a worsening wellbeing trend.",
-    "signals": ["exam pressure", "sleep trouble"],
     "emotionPolarity": "NEGATIVE",
     "riskLevel": "HIGH",
-    "recordId": "mental-health-record-id",
-    "modelUsed": "gpt-4o-mini"
+    "signals": ["overwhelmed", "failing", "punish", "exhausted"],
+    "reasonSummary": "Whole-session sentiment: -0.72 based on: overwhelmed, failing, punish, exhausted.",
+    "recordId": "uuid"
   }
   ```
-
-Notes:
-- Raw dialogue is not stored by the mental-health analyzer.
-- The cumulative `currentScore` is persisted as an aggregate record only.
-- The response can be used by the UI to show current wellbeing status without exposing the conversation text.
 
 ---
 
@@ -494,10 +634,11 @@ Notes:
 - **Session-Based Memory**: Each session maintains separate conversations
 - **Context-Aware Responses**: Last 10 messages automatically included for coherent responses
 - **Socratic Method**: AI guides learning through questioning
+- **Learning Behaviour Analysis**: After every Socratic message the AI identifies engaged curriculum knowledge points and mastery level; `Progress` records are upserted automatically (fire-and-forget, does not add response latency)
 - **Content Filtering**: Automatically blocks prohibited topics
 - **Multi-Model Support**: Configurable AI model (OpenRouter)
 - **Mental Health Scoring**: Configurable prompt, score delta tracking, and summary-only wellbeing records
-- **User Isolation**: Students can only access their own sessions
+- **User Isolation**: Students can only access their own sessions; teachers, parents, and admins can query any student's progress
 
 For detailed API documentation, see [SOCRATIC_CHATBOT.md](./SOCRATIC_CHATBOT.md)
 For frontend integration examples, see [CHATBOT_FRONTEND_INTEGRATION.md](./CHATBOT_FRONTEND_INTEGRATION.md)

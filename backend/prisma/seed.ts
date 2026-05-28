@@ -22,7 +22,7 @@ async function main() {
 
   // ── Users ────────────────────────────────────────────────────────────────
 
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@school.com' },
     update: { password, role: Role.SCHOOL_ADMIN },
     create: { name: 'Admin User', email: 'admin@school.com', password, role: Role.SCHOOL_ADMIN }
@@ -32,6 +32,37 @@ async function main() {
     where: { email: 'teacher@school.com' },
     update: { password, role: Role.TEACHER },
     create: { name: 'Mr. Smith', email: 'teacher@school.com', password, role: Role.TEACHER }
+  });
+
+  const teacher2 = await prisma.user.upsert({
+    where: { email: 'teacher2@school.com' },
+    update: { password, role: Role.TEACHER },
+    create: { name: 'Ms. Chen', email: 'teacher2@school.com', password, role: Role.TEACHER }
+  });
+
+  const teacher3 = await prisma.user.upsert({
+    where: { email: 'teacher3@school.com' },
+    update: { password, role: Role.TEACHER },
+    create: { name: 'Mr. Williams', email: 'teacher3@school.com', password, role: Role.TEACHER }
+  });
+
+  // School 2 teachers
+  const teacher4 = await prisma.user.upsert({
+    where: { email: 'teacher4@school.com' },
+    update: { password, role: Role.TEACHER },
+    create: { name: 'Ms. Lam', email: 'teacher4@school.com', password, role: Role.TEACHER }
+  });
+
+  const teacher5 = await prisma.user.upsert({
+    where: { email: 'teacher5@school.com' },
+    update: { password, role: Role.TEACHER },
+    create: { name: 'Mr. Cheung', email: 'teacher5@school.com', password, role: Role.TEACHER }
+  });
+
+  const teacher6 = await prisma.user.upsert({
+    where: { email: 'teacher6@school.com' },
+    update: { password, role: Role.TEACHER },
+    create: { name: 'Ms. Ho', email: 'teacher6@school.com', password, role: Role.TEACHER }
   });
 
   const student = await prisma.user.upsert({
@@ -54,13 +85,21 @@ async function main() {
     create: { parentId: parent.id, childId: student.id }
   });
 
-  // ── School & Class ───────────────────────────────────────────────────────
+  // ── Schools ──────────────────────────────────────────────────────────────
 
   const school = await prisma.school.upsert({
     where: { code: 'HS001' },
     update: {},
-    create: { name: 'No. 1 High School', code: 'HS001' }
+    create: { name: 'No. 1 Primary School', code: 'HS001' }
   });
+
+  const school2 = await prisma.school.upsert({
+    where: { code: 'HS002' },
+    update: {},
+    create: { name: 'No. 2 High School', code: 'HS002' }
+  });
+
+  // ── Legacy class (keeps student@school.com enrolment intact) ─────────────
 
   const mathClass = await prisma.class.upsert({
     where: { code: 'MATH101' },
@@ -73,6 +112,76 @@ async function main() {
     update: {},
     create: { classId: mathClass.id, studentId: student.id }
   });
+
+  // ── Form classes S1–S6 (school 1) and F1–F6 (school 2), four classes each ──
+
+  const classLetters = ['A', 'B', 'C', 'D'];
+
+  // School 1: S1–S6 — teachers 1–3
+  // School 2: F1–F6 — teachers 4–6
+  const formMeta = (form: string): { schoolId: string; teacherId: string } => {
+    if (['S1', 'S2'].includes(form)) return { schoolId: school.id,  teacherId: teacher.id  };
+    if (['S3', 'S4'].includes(form)) return { schoolId: school.id,  teacherId: teacher2.id };
+    if (['S5', 'S6'].includes(form)) return { schoolId: school.id,  teacherId: teacher3.id };
+    if (['F1', 'F2'].includes(form)) return { schoolId: school2.id, teacherId: teacher4.id };
+    if (['F3', 'F4'].includes(form)) return { schoolId: school2.id, teacherId: teacher5.id };
+    return                                   { schoolId: school2.id, teacherId: teacher6.id };
+  };
+
+  const forms = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6'];
+  const classMap: Record<string, { id: string }> = {};
+  for (const form of forms) {
+    for (const letter of classLetters) {
+      const code = `${form}${letter}`;
+      const cls = await prisma.class.upsert({
+        where: { code },
+        update: {},
+        create: { name: `${form} Class ${letter}`, code, ...formMeta(form) }
+      });
+      classMap[code] = cls;
+    }
+  }
+
+  // ── Students: 10 per class, 480 total ────────────────────────────────────
+  // 20 surnames × 24 given names = 480 unique combinations
+
+  const surnames = [
+    'Chan', 'Wong', 'Lee',  'Lau',  'Cheung', 'Ng',   'Ho',  'Tam',
+    'Yip',  'Man',  'Tsang','Chow', 'Hui',    'Tang', 'Kwok','Leung',
+    'Wu',   'Lo',   'Ma',   'Fung'
+  ];
+  const givenNames = [
+    'Michael', 'Emily',  'Thomas', 'Chloe',  'David',  'Sophie',
+    'Kevin',   'Amy',    'Jason',  'Kelly',   'Brian',  'Mandy',
+    'Ryan',    'Fanny',  'Eric',   'Iris',    'Alan',   'Candy',
+    'Daniel',  'Betty',  'Steven', 'Jenny',   'Tony',   'Vivian'
+  ];
+
+  let studentIdx = 0;
+  for (const form of forms) {
+    for (const letter of classLetters) {
+      const code = `${form}${letter}`;
+      for (let i = 0; i < 10; i++) {
+        const surname  = surnames[studentIdx % surnames.length];
+        const given    = givenNames[Math.floor(studentIdx / surnames.length) % givenNames.length];
+        const email    = `${form.toLowerCase()}${letter.toLowerCase()}${String(i + 1).padStart(2, '0')}@school.com`;
+
+        const s = await prisma.user.upsert({
+          where: { email },
+          update: {},
+          create: { name: `${surname} ${given}`, email, password, role: Role.STUDENT }
+        });
+
+        await prisma.classStudent.upsert({
+          where: { classId_studentId: { classId: classMap[code].id, studentId: s.id } },
+          update: {},
+          create: { classId: classMap[code].id, studentId: s.id }
+        });
+
+        studentIdx++;
+      }
+    }
+  }
 
   // ── Subjects, Chapters & Knowledge Points ────────────────────────────────
 
@@ -198,10 +307,21 @@ async function main() {
 
   console.log('Seeding complete.');
   console.log('');
-  console.log('Login credentials (all use password: password123)');
+  console.log('School 1 (HS001 · No. 1 Primary School): S1–S6 × A–D = 24 classes, 240 students');
+  console.log('  Teachers: Mr. Smith (S1–S2) · Ms. Chen (S3–S4) · Mr. Williams (S5–S6)');
+  console.log('School 2 (HS002 · No. 2 High School): F1–F6 × A–D = 24 classes, 240 students');
+  console.log('  Teachers: Ms. Lam (F1–F2) · Mr. Cheung (F3–F4) · Ms. Ho (F5–F6)');
+  console.log('  Student emails: s1a01@school.com … f6d10@school.com  (password: password123)');
+  console.log('');
+  console.log('Test accounts (password: password123)');
   console.log('  admin@school.com    — SCHOOL_ADMIN');
-  console.log('  teacher@school.com  — TEACHER');
-  console.log('  student@school.com  — STUDENT');
+  console.log('  teacher@school.com  — TEACHER (Mr. Smith,    HS001 S1–S2)');
+  console.log('  teacher2@school.com — TEACHER (Ms. Chen,     HS001 S3–S4)');
+  console.log('  teacher3@school.com — TEACHER (Mr. Williams, HS001 S5–S6)');
+  console.log('  teacher4@school.com — TEACHER (Ms. Lam,      HS002 F1–F2)');
+  console.log('  teacher5@school.com — TEACHER (Mr. Cheung,   HS002 F3–F4)');
+  console.log('  teacher6@school.com — TEACHER (Ms. Ho,       HS002 F5–F6)');
+  console.log('  student@school.com  — STUDENT (Alice, MATH101)');
   console.log('  parent@family.com   — PARENT');
 }
 

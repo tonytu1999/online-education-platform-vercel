@@ -2,7 +2,6 @@ import { Router, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import {
   chat,
-  checkMentalHealth,
   checkSessionMentalHealth,
   createChatSession,
   getStudentSessions,
@@ -28,10 +27,7 @@ router.delete('/sessions/:sessionId', deleteChatSession);
 // Chat within a session
 router.post('/chat', chat);
 
-// Mental health check (single message)
-router.post('/mental-health', checkMentalHealth);
-
-// Whole-session mental health analysis
+// Whole-session mental health analysis (on-demand)
 router.post('/sessions/:sessionId/mental-health', checkSessionMentalHealth);
 
 export default router;

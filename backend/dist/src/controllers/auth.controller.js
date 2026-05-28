@@ -68,9 +68,16 @@ const login = async (req, res) => {
     try {
         console.log('Login request received', req.body);
         const { email, phone, password } = req.body;
+        if (!email && !phone) {
+            res.status(400).json({ error: 'Email or phone is required' });
+            return;
+        }
         const user = await prisma_1.default.user.findFirst({
             where: {
-                OR: email ? [{ email }] : phone ? [{ phone }] : []
+                OR: [
+                    ...(email ? [{ email }] : []),
+                    ...(phone ? [{ phone }] : [])
+                ]
             }
         });
         if (!user) {

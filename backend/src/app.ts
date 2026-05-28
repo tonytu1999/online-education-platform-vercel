@@ -10,6 +10,7 @@ import progressRoutes from './routes/progress.routes';
 import systemRoutes from './routes/system.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import curriculumRoutes from './routes/curriculum.routes';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

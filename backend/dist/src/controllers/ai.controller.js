@@ -3,25 +3,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkMentalHealth = exports.deleteChatSession = exports.chat = exports.getSessionDetails = exports.getStudentSessions = exports.createChatSession = void 0;
+exports.checkSessionMentalHealth = exports.checkMentalHealth = exports.deleteChatSession = exports.chat = exports.getSessionDetails = exports.getStudentSessions = exports.createChatSession = void 0;
 const ai_service_1 = require("../services/ai.service");
 const filter_service_1 = require("../services/filter.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
+const SESSION_TYPES = ['Socratic', 'Mental'];
 // Create a new chat session
 const createChatSession = async (req, res) => {
     try {
-        const { title, subject, topic } = req.body;
         const studentId = req.user?.id;
+        const { type } = req.body;
         if (!studentId) {
             res.status(401).json({ error: 'User not authenticated' });
             return;
         }
+        if (!SESSION_TYPES.includes(type)) {
+            res.status(400).json({ error: 'type must be "Socratic" or "Mental"' });
+            return;
+        }
+        const sessionType = type === 'Mental' ? 'MENTAL' : 'SOCRATIC';
         const session = await prisma_1.default.chatSession.create({
             data: {
                 studentId,
-                title: title || 'New Chat Session',
-                subject,
-                topic
+                sessionType
             }
         });
         res.status(201).json({ session });
@@ -126,50 +130,67 @@ const chat = async (req, res) => {
             res.status(403).json({ error: 'Message contains prohibited content and has been blocked.' });
             return;
         }
+        // Check if this is the first user message (for Socratic title generation)
+        const isSocratic = session.sessionType === 'SOCRATIC';
+        const priorUserCount = isSocratic
+            ? await prisma_1.default.chatHistory.count({ where: { sessionId: session.id, sender: 'USER' } })
+            : 1;
+        const isFirstMessage = priorUserCount === 0;
         // Save user message
         console.warn('[CHAT] About to save user message');
         await prisma_1.default.chatHistory.create({
             data: {
-                sessionId,
+                sessionId: session.id,
                 studentId,
                 message,
                 sender: 'USER'
             }
         });
-        console.warn('[CHAT] About to generate Socratic response');
-        // 2. Generate Socratic Response using conversation history
-        const { response: aiResponse, model } = await (0, ai_service_1.generateSocraticResponse)(message, sessionId);
+        console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
+        // 2. Generate response based on session type
+        const { response: aiResponse, model } = isSocratic
+            ? await (0, ai_service_1.generateSocraticResponse)(message, session.id)
+            : await (0, ai_service_1.generateMentalHealthResponse)(message, session.id);
         console.warn('[CHAT] Generated response');
         // Save AI response
         await prisma_1.default.chatHistory.create({
             data: {
-                sessionId,
+                sessionId: session.id,
                 studentId,
                 message: aiResponse,
                 sender: 'AI',
                 modelUsed: model
             }
         });
-        // Update session last accessed time
+        // Derive title from first user message in a Socratic session
+        const derivedTitle = isFirstMessage
+            ? (message.length > 60 ? message.slice(0, 60).trimEnd() + '...' : message.trim())
+            : undefined;
         await prisma_1.default.chatSession.update({
             where: { id: session.id },
-            data: { lastAccessedAt: new Date() }
+            data: {
+                lastAccessedAt: new Date(),
+                ...(derivedTitle ? { title: derivedTitle } : {})
+            }
         });
+        // 3. Mental health analysis — Socratic sessions only
         let mentalHealth = null;
-        try {
-            mentalHealth = await (0, ai_service_1.assessMentalHealth)({
-                studentId,
-                sessionId,
-                message,
-                context: {
-                    source: 'chat',
-                    subject: session.subject,
-                    topic: session.topic
-                }
-            });
-        }
-        catch (mentalHealthError) {
-            console.error('[CHAT] Mental health analysis failed:', mentalHealthError);
+        if (isSocratic) {
+            try {
+                mentalHealth = await (0, ai_service_1.assessMentalHealth)({
+                    studentId,
+                    sessionId: session.id,
+                    message,
+                    context: {
+                        source: 'chat',
+                        subject: session.subject,
+                        topic: session.topic
+                    }
+                });
+            }
+            catch (mentalHealthError) {
+                console.error('[CHAT] Mental health analysis failed:', mentalHealthError);
+            }
         }
         console.warn('[CHAT] About to send response');
         res.json({
@@ -245,7 +266,30 @@ const checkMentalHealth = async (req, res) => {
         res.json(assessment);
     }
     catch (error) {
-        res.status(500).json({ error: 'Mental health check failed' });
+        console.error('[MENTAL HEALTH] Error:', error?.message, error?.stack);
+        res.status(500).json({ error: 'Mental health check failed', details: error?.message });
     }
 };
 exports.checkMentalHealth = checkMentalHealth;
+const checkSessionMentalHealth = async (req, res) => {
+    try {
+        const studentId = req.user?.id;
+        const sessionId = Array.isArray(req.params.sessionId)
+            ? req.params.sessionId[0]
+            : req.params.sessionId;
+        if (!studentId) {
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
+        }
+        const result = await (0, ai_service_1.assessSessionMentalHealth)(studentId, sessionId);
+        res.json(result);
+    }
+    catch (error) {
+        if (error.message === 'Session not found') {
+            res.status(404).json({ error: 'Session not found' });
+            return;
+        }
+        res.status(500).json({ error: 'Mental health analysis failed' });
+    }
+};
+exports.checkSessionMentalHealth = checkSessionMentalHealth;

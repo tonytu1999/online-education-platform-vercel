@@ -3,9 +3,10 @@
  * System prompts configuration for different tutoring scenarios
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MENTAL_HEALTH_PROMPTS = exports.SOCRATIC_PROMPTS = void 0;
+exports.MENTAL_HEALTH_PROMPTS = exports.MENTAL_CHAT_PROMPT = exports.SOCRATIC_PROMPTS = void 0;
 exports.getSystemPrompt = getSystemPrompt;
 exports.getMentalHealthSystemPrompt = getMentalHealthSystemPrompt;
+exports.getMentalChatSystemPrompt = getMentalChatSystemPrompt;
 exports.SOCRATIC_PROMPTS = {
     // General Socratic method for various subjects
     default: {
@@ -94,6 +95,26 @@ When helping with science:
 Remember: Science is about understanding "how" and "why" things work.`
     }
 };
+exports.MENTAL_CHAT_PROMPT = {
+    role: 'system',
+    content: `You are a warm and supportive mental health companion for students.
+
+Your role is to:
+1. Listen actively and validate the student's feelings without judgement
+2. Help them reflect on their emotions by asking gentle, open-ended questions
+3. Suggest simple coping strategies (breathing, journaling, talking to someone)
+4. Encourage them to seek professional support when signals are serious
+5. Keep the conversation calm, caring, and safe
+
+Guidelines:
+- Never diagnose or prescribe
+- Never minimise or dismiss what the student shares
+- If a student mentions self-harm or suicide, respond with compassion and always include a prompt to speak with a trusted adult or counsellor
+- Keep responses concise — 2 to 4 sentences unless the student clearly needs more
+- Do not roleplay as a doctor, therapist, or parent
+
+Remember: You are a companion, not a clinician. Your goal is to make the student feel heard and supported.`
+};
 exports.MENTAL_HEALTH_PROMPTS = {
     default: {
         role: 'system',
@@ -148,4 +169,7 @@ function getSystemPrompt(subject) {
 }
 function getMentalHealthSystemPrompt() {
     return exports.MENTAL_HEALTH_PROMPTS.default.content;
+}
+function getMentalChatSystemPrompt() {
+    return exports.MENTAL_CHAT_PROMPT.content;
 }

@@ -1,5 +1,7 @@
+import Sentiment from 'sentiment';
+import { MasteryLevel } from '@prisma/client';
 import prisma from '../config/prisma';
-import { getSystemPrompt } from '../config/prompts';
+import { getSystemPrompt, getMentalChatSystemPrompt, getLearningAnalysisPrompt } from '../config/prompts';
 
 interface AIServiceRequest {
   message: string;
@@ -49,6 +51,22 @@ const normalizeSignals = (signals: unknown): string[] => {
   return [...new Set(signals.map((signal) => String(signal).trim()).filter((signal) => signal.length > 0))].slice(0, 6);
 };
 
+// Classify the current message sentiment by its delta (-10..10)
+const classifyDelta = (delta: number): {
+  statusLabel: MentalHealthLabel;
+  emotionPolarity: MentalHealthPolarity;
+  riskLevel: MentalHealthRisk;
+} => {
+  if (delta >= 4) {
+    return { statusLabel: 'GOOD', emotionPolarity: 'POSITIVE', riskLevel: 'LOW' };
+  }
+  if (delta <= -4) {
+    return { statusLabel: 'BAD', emotionPolarity: 'NEGATIVE', riskLevel: 'HIGH' };
+  }
+  return { statusLabel: 'NEUTRAL', emotionPolarity: 'NEUTRAL', riskLevel: 'MEDIUM' };
+};
+
+// Classify the accumulated score trend (-100..100)
 const classifyMentalHealth = (score: number): {
   statusLabel: MentalHealthLabel;
   emotionPolarity: MentalHealthPolarity;
@@ -57,80 +75,136 @@ const classifyMentalHealth = (score: number): {
   if (score >= 20) {
     return { statusLabel: 'GOOD', emotionPolarity: 'POSITIVE', riskLevel: 'LOW' };
   }
-
   if (score <= -20) {
     return { statusLabel: 'BAD', emotionPolarity: 'NEGATIVE', riskLevel: 'HIGH' };
   }
-
   return { statusLabel: 'NEUTRAL', emotionPolarity: 'NEUTRAL', riskLevel: 'MEDIUM' };
 };
 
-// Bag-of-words sentiment lexicon (score contribution per match)
-const POSITIVE_WORDS: Record<string, number> = {
-  happy: 0.8, glad: 0.7, joyful: 0.8, excited: 0.7, calm: 0.6, relaxed: 0.6,
-  confident: 0.7, hopeful: 0.7, grateful: 0.7, supported: 0.6, understood: 0.6,
-  better: 0.5, good: 0.5, great: 0.7, awesome: 0.8, fine: 0.4, okay: 0.3,
-  rested: 0.5, steady: 0.5, encouraged: 0.6, relieved: 0.6, manageable: 0.5,
-  'sleep well': 0.5, optimistic: 0.7, motivated: 0.7, proud: 0.7
+const sentimentAnalyzer = new Sentiment();
+
+// Single-word extras not in AFINN-165 (scores on the same -5..5 scale)
+const ACADEMIC_EXTRAS: Record<string, number> = {
+  punish: -4, punished: -4, scolded: -3, overwhelm: -3,
+  struggling: -3, failing: -3, burnout: -4,
+  insomnia: -3, exhausted: -3, drained: -2,
+  humiliated: -4, ashamed: -3, embarrassed: -2,
+  disappointed: -3, disappoint: -2,
+  suicide: -5,
+  motivated: 3, determined: 3, resilient: 3,
+  productive: 2, improved: 2, progress: 2,
+  succeed: 3, focused: 2, curious: 2
 };
 
-const NEGATIVE_WORDS: Record<string, number> = {
-  stressed: -0.7, anxious: -0.8, worried: -0.7, overwhelmed: -0.8, hopeless: -0.9,
-  sad: -0.7, tired: -0.5, 'burned out': -0.8, burnout: -0.8, cry: -0.6,
-  panic: -0.9, 'panic attack': -0.95, 'cannot sleep': -0.6, insomnia: -0.6,
-  fail: -0.6, failure: -0.7, worthless: -0.9, alone: -0.7, 'self-harm': -1.0,
-  suicide: -1.0, depressed: -0.9, frustrated: -0.6, angry: -0.6, scared: -0.7,
-  lonely: -0.7, miserable: -0.8, exhausted: -0.6, drained: -0.6
+// Bigram / trigram dictionary — phrases whose meaning differs from the sum of their parts.
+// Scores use the same -5..5 AFINN scale.
+const PHRASE_SCORES: Record<string, number> = {
+  // Negation patterns
+  'cannot sleep': -3, "can't sleep": -3,
+  'cannot sleep well': -4, "can't sleep well": -4,
+  'cannot focus': -3, "can't focus": -3,
+  'cannot concentrate': -3, "can't concentrate": -3,
+  'cannot eat': -2, "can't eat": -2,
+  'cannot stop crying': -5, "can't stop crying": -5,
+  'cannot do this': -3, "can't do this": -3,
+  'cannot cope': -4, "can't cope": -4,
+  'no motivation': -3, 'lost motivation': -3,
+  'no energy': -2, 'no point': -3, 'no hope': -4,
+  // Intensified distress
+  'very sad': -4, 'really sad': -4, 'so sad': -4, 'extremely sad': -5,
+  'very stressed': -4, 'really stressed': -4, 'so stressed': -4,
+  'very anxious': -4, 'really anxious': -4, 'so anxious': -4,
+  'very worried': -4, 'really worried': -4,
+  'very tired': -3, 'really tired': -3, 'so tired': -3,
+  'very overwhelmed': -4, 'so overwhelmed': -4,
+  'very depressed': -5, 'really depressed': -5,
+  'very lonely': -4, 'so lonely': -4,
+  'very scared': -4, 'really scared': -4,
+  // Academic distress
+  'low grade': -3, 'low marks': -3, 'bad grade': -3,
+  'fail exam': -4, 'going to fail': -4,
+  'falling behind': -3, 'fall behind': -3,
+  'need help': -2,
+  // Emotional state phrases
+  'feel lost': -3, 'feeling lost': -3,
+  'feel hopeless': -4, 'feeling hopeless': -4,
+  'feel worthless': -5, 'feeling worthless': -5,
+  'feel useless': -4, 'feeling useless': -4,
+  'feel empty': -3, 'feeling empty': -3,
+  'feel alone': -3, 'feeling alone': -3,
+  'feel terrible': -4, 'feeling terrible': -4,
+  'feel awful': -4, 'feeling awful': -4,
+  'break down': -4, 'breaking down': -4,
+  'give up': -4, 'giving up': -4, 'want to give up': -5,
+  // Crisis — single words included here so they always appear as named signals
+  suicide: -5, 'commit suicide': -5,
+  'self-harm': -5, 'self harm': -5, 'selfharm': -5,
+  'want to die': -5, 'hurt myself': -5, 'end my life': -5, 'kill myself': -5,
+  // Positive phrases
+  'sleep well': 3, 'slept well': 3, 'sleeping well': 3,
+  'feel good': 3, 'feeling good': 3,
+  'feel better': 2, 'feeling better': 2,
+  'feel great': 4, 'feeling great': 4,
+  'feel happy': 4, 'feeling happy': 4,
+  'feel calm': 3, 'feeling calm': 3,
+  'feel confident': 3, 'feeling confident': 3,
+  'feel motivated': 3, 'feeling motivated': 3,
+  'feel relaxed': 3, 'feeling relaxed': 3,
+  'do well': 3, 'did well': 3, 'doing well': 3,
+  'much better': 3, 'so much better': 4,
+  'no stress': 3
 };
 
-// Compute sentiment score (-1 to 1) using bag-of-words on combined text
-const computeSentimentScore = (texts: string[]): number => {
+// Sorted longest-first so a longer phrase consumes its substring before the substring can match
+const SORTED_PHRASES = Object.entries(PHRASE_SCORES).sort(([a], [b]) => b.length - a.length);
+
+const computeSentimentScore = (texts: string[]): { score: number; signals: string[] } => {
   const combined = texts.join(' ').toLowerCase();
-  let total = 0;
-  let count = 0;
 
-  Object.entries(POSITIVE_WORDS).forEach(([word, weight]) => {
-    if (combined.includes(word)) {
-      total += weight;
-      count += 1;
+  // Phase 1 — phrase matching, longest-first to prevent substring double-matches
+  const phraseMatches: { phrase: string; score: number }[] = [];
+  let remaining = combined;
+  for (const [phrase, score] of SORTED_PHRASES) {
+    if (remaining.includes(phrase)) {
+      phraseMatches.push({ phrase, score });
+      // Consume matched text so shorter substrings inside it cannot also match
+      remaining = remaining.split(phrase).join(' ');
     }
-  });
+  }
 
-  Object.entries(NEGATIVE_WORDS).forEach(([word, weight]) => {
-    if (combined.includes(word)) {
-      total += weight;
-      count += 1;
-    }
-  });
+  // Phase 2 — AFINN word-level analysis on the original text
+  const afinnResult = sentimentAnalyzer.analyze(combined, { extras: ACADEMIC_EXTRAS });
+  const wordSignals = [...new Set([...afinnResult.positive, ...afinnResult.negative])];
 
-  if (count === 0) return 0;
-  // Average and clamp to [-1, 1]
-  return clampNumber(total / count, -1, 1);
+  // Combine: phrases weighted 2× (more contextually precise than individual words)
+  const phraseSentiment = phraseMatches.length > 0
+    ? clampNumber(phraseMatches.reduce((s, m) => s + m.score, 0) / (phraseMatches.length * 5), -1, 1)
+    : null;
+  const afinnSentiment = clampNumber(afinnResult.comparative / 5, -1, 1);
+
+  const finalScore = phraseSentiment !== null
+    ? clampNumber((phraseSentiment * 2 + afinnSentiment) / 3, -1, 1)
+    : afinnSentiment;
+
+  // Phrase signals first (more meaningful), then AFINN word signals; limit to 10
+  const signals = [...new Set([...phraseMatches.map((m) => m.phrase), ...wordSignals])].slice(0, 10);
+  return { score: finalScore, signals };
 };
 
-// Analyze a session: average sentiment across all messages, map to scoreDelta
+// Analyse student messages in a session, return scoreDelta and signals
 const analyzeSessionSentiment = (
   currentMessage: string,
   contextMessages: ChatMessage[]
 ): { scoreDelta: number; signals: string[]; reasonSummary: string } => {
-  const allTexts = [currentMessage, ...contextMessages.map((m) => m.content)];
-  const avgScore = computeSentimentScore(allTexts); // -1..1
+  const texts = [currentMessage, ...contextMessages.filter((m) => m.role === 'user').map((m) => m.content)];
+  const { score, signals } = computeSentimentScore(texts);
+  const scoreDelta = clampNumber(Math.round(score * 10), -10, 10);
 
-  // Convert average (-1..1) to a delta suitable for accumulation (-10..10)
-  const scoreDelta = clampNumber(Math.round(avgScore * 10), -10, 10);
+  const reasonSummary = signals.length > 0
+    ? `Sentiment score ${score.toFixed(2)} based on: ${signals.slice(0, 4).join(', ')}.`
+    : 'No strong sentiment signals detected; treated as neutral.';
 
-  // Collect matched signals for transparency
-  const combined = allTexts.join(' ').toLowerCase();
-  const matched: string[] = [];
-  [...Object.keys(POSITIVE_WORDS), ...Object.keys(NEGATIVE_WORDS)].forEach((w) => {
-    if (combined.includes(w) && !matched.includes(w)) matched.push(w);
-  });
-
-  const reasonSummary = matched.length > 0
-    ? `Session sentiment averaged ${avgScore.toFixed(2)} based on: ${matched.slice(0, 4).join(', ')}.`
-    : 'No strong sentiment signals detected in the session; treated as neutral.';
-
-  return { scoreDelta, signals: matched.slice(0, 6), reasonSummary };
+  return { scoreDelta, signals, reasonSummary };
 };
 
 const resolveChatSession = async (sessionId: string) => {
@@ -317,22 +391,16 @@ export const assessSessionMentalHealth = async (
   const resolvedSession = await resolveChatSession(sessionId);
   if (!resolvedSession) throw new Error('Session not found');
 
-  // Load ALL messages in the session (not capped)
+  // Load only student messages (exclude AI replies)
   const rows = await prisma.chatHistory.findMany({
-    where: { sessionId: resolvedSession.id },
+    where: { sessionId: resolvedSession.id, sender: 'USER' },
     orderBy: { createdAt: 'asc' },
     select: { message: true }
   });
 
   const texts = rows.map((r) => r.message);
-  const sentimentScore = computeSentimentScore(texts); // -1..1
+  const { score: sentimentScore, signals: matched } = computeSentimentScore(texts);
   const scoreDelta = clampNumber(Math.round(sentimentScore * 10), -10, 10);
-
-  const combined = texts.join(' ').toLowerCase();
-  const matched: string[] = [];
-  [...Object.keys(POSITIVE_WORDS), ...Object.keys(NEGATIVE_WORDS)].forEach((w) => {
-    if (combined.includes(w) && !matched.includes(w)) matched.push(w);
-  });
 
   const reasonSummary = matched.length > 0
     ? `Whole-session sentiment: ${sentimentScore.toFixed(2)} based on: ${matched.slice(0, 4).join(', ')}.`
@@ -340,7 +408,7 @@ export const assessSessionMentalHealth = async (
 
   const currentScore = await getLatestMentalHealthScore(studentId);
   const nextScore = clampNumber(currentScore + scoreDelta, -100, 100);
-  const scoreProfile = classifyMentalHealth(nextScore);
+  const scoreProfile = classifyDelta(scoreDelta);
   const normalizedSignals = normalizeSignals(matched);
 
   const record = await prisma.mentalHealth.create({
@@ -355,7 +423,7 @@ export const assessSessionMentalHealth = async (
       emotionPolarity: scoreProfile.emotionPolarity,
       riskLevel: scoreProfile.riskLevel,
       keywords: normalizedSignals.join(', '),
-      analysisModel: 'bow-sentiment-v1'
+      analysisModel: 'afinn-sentiment-v2'
     }
   });
 
@@ -380,40 +448,40 @@ export const assessMentalHealth = async (
   // Bag-of-words sentiment analysis over the whole session (current + history)
   const { scoreDelta, signals, reasonSummary } = analyzeSessionSentiment(input.message, recentConversation);
 
+  // Label reflects THIS message's sentiment; accumulated score tracks the trend
+  const messageProfile = classifyDelta(scoreDelta);
+
   const analysis: MentalHealthAnalysisOutput = {
     scoreDelta,
-    ...classifyMentalHealth(currentScore + scoreDelta),
+    ...messageProfile,
     reasonSummary,
     signals
   };
 
-  const nextScore = clampNumber(currentScore + analysis.scoreDelta, -100, 100);
-  const scoreProfile = classifyMentalHealth(nextScore);
-  const normalizedSignals = normalizeSignals(analysis.signals);
+  const nextScore = clampNumber(currentScore + scoreDelta, -100, 100);
+  const normalizedSignals = normalizeSignals(signals);
   const record = await prisma.mentalHealth.create({
     data: {
       studentId: input.studentId,
       sourceSessionId: input.sessionId || null,
       statusScore: nextScore,
-      scoreDelta: analysis.scoreDelta,
-      statusLabel: analysis.statusLabel || scoreProfile.statusLabel,
-      reasonSummary: analysis.reasonSummary,
+      scoreDelta,
+      statusLabel: messageProfile.statusLabel,
+      reasonSummary,
       signals: normalizedSignals.join(', '),
-      emotionPolarity: analysis.emotionPolarity || scoreProfile.emotionPolarity,
-      riskLevel: analysis.riskLevel || scoreProfile.riskLevel,
+      emotionPolarity: messageProfile.emotionPolarity,
+      riskLevel: messageProfile.riskLevel,
       keywords: normalizedSignals.join(', '),
-      analysisModel: 'bow-sentiment-v1'
+      analysisModel: 'afinn-sentiment-v2'
     }
   });
 
   return {
-    ...scoreProfile,
-    ...analysis,
-    scoreDelta: analysis.scoreDelta,
-    statusLabel: analysis.statusLabel || scoreProfile.statusLabel,
-    emotionPolarity: analysis.emotionPolarity || scoreProfile.emotionPolarity,
-    riskLevel: analysis.riskLevel || scoreProfile.riskLevel,
+    ...messageProfile,
+    scoreDelta,
     currentScore: nextScore,
+    reasonSummary,
+    signals: normalizedSignals,
     recordId: record.id,
     modelUsed: 'bow-sentiment-v1'
   };
@@ -501,4 +569,106 @@ export const generateSocraticResponse = async (
   }
 
   return { response, model: activeModel };
+};
+
+const VALID_MASTERY: MasteryLevel[] = ['UNMASTERED', 'PARTIAL', 'MASTERED'];
+
+// Analyse the Socratic conversation and upsert Progress records for engaged knowledge points.
+// Designed to run fire-and-forget — never throws.
+export const analyzeLearningBehavior = async (
+  studentId: string,
+  sessionId: string
+): Promise<void> => {
+  try {
+    const session = await resolveChatSession(sessionId);
+    if (!session) return;
+
+    const subject = (session as any).subject as string | null | undefined;
+
+    // Fetch knowledge points scoped to the session subject when available
+    const knowledgePoints = await prisma.knowledgePoint.findMany({
+      where: subject ? {
+        chapter: { subject: { name: { contains: subject, mode: 'insensitive' } } }
+      } : {},
+      select: { id: true, name: true }
+    });
+
+    if (knowledgePoints.length === 0) return;
+
+    const history = await getConversationHistory(session.id);
+    if (history.length === 0) return;
+
+    const kpList = knowledgePoints.map(kp => kp.name).join('\n');
+    const conversationText = history.map(m => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`).join('\n');
+
+    const raw = await callOpenRouterCompletion({
+      systemPrompt: getLearningAnalysisPrompt(),
+      messages: [{ role: 'user', content: `Knowledge points:\n${kpList}\n\nConversation:\n${conversationText}` }],
+      temperature: 0.2,
+      maxTokens: 400
+    });
+
+    let parsed: { knowledgePoints: Array<{ name: string; mastery: string }> };
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    if (!Array.isArray(parsed?.knowledgePoints)) return;
+
+    // Case-insensitive lookup so minor AI formatting differences don't break matching
+    const kpMap = new Map(knowledgePoints.map(kp => [kp.name.toLowerCase().trim(), kp.id]));
+
+    for (const item of parsed.knowledgePoints) {
+      const kpId = kpMap.get(item.name.toLowerCase().trim());
+      if (!kpId) continue;
+
+      const mastery: MasteryLevel = VALID_MASTERY.includes(item.mastery as MasteryLevel)
+        ? (item.mastery as MasteryLevel)
+        : 'PARTIAL';
+
+      await prisma.progress.upsert({
+        where: { studentId_knowledgePointId: { studentId, knowledgePointId: kpId } },
+        create: { studentId, knowledgePointId: kpId, mastery, studyTimeSeconds: 60 },
+        update: { mastery, studyTimeSeconds: { increment: 60 } }
+      });
+    }
+  } catch (error) {
+    console.error('[LEARNING ANALYSIS] Failed:', error instanceof Error ? error.message : error);
+  }
+};
+
+export const generateMentalHealthResponse = async (
+  userMessage: string,
+  sessionId: string
+): Promise<{ response: string; model: string }> => {
+  const activeModel = await getActiveAIModel();
+
+  let conversationHistory: ChatMessage[] = [];
+  try {
+    const session = await resolveChatSession(sessionId);
+    if (session) {
+      conversationHistory = await getConversationHistory(session.id);
+    }
+  } catch (error) {
+    console.error('[AI Service] Error fetching mental chat history:', error);
+  }
+
+  const systemPrompt = getMentalChatSystemPrompt();
+  const messages: ChatMessage[] = [
+    ...conversationHistory,
+    { role: 'user', content: userMessage }
+  ];
+
+  try {
+    const response = await callOpenRouterCompletion({ systemPrompt, messages, temperature: 0.7, maxTokens: 300 });
+    return { response: response || 'I\'m here for you. Can you tell me more about how you\'re feeling?', model: activeModel };
+  } catch (error) {
+    console.error('[AI Service] Mental chat OpenRouter failed, using fallback:', error);
+    return {
+      response: 'I hear you, and I\'m glad you shared that. It sounds like things have been tough. Would you like to talk more about what\'s been on your mind?',
+      model: 'fallback'
+    };
+  }
 };

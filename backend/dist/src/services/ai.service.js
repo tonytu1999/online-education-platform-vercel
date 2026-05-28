@@ -3,10 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateSocraticResponse = exports.assessMentalHealth = exports.getConversationHistory = exports.getActiveAIModel = void 0;
+exports.generateMentalHealthResponse = exports.generateSocraticResponse = exports.assessMentalHealth = exports.assessSessionMentalHealth = exports.getConversationHistory = exports.getActiveAIModel = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const prompts_1 = require("../config/prompts");
-const MENTAL_HEALTH_CONFIG_KEY = 'MENTAL_HEALTH_SYSTEM_PROMPT';
 const clampNumber = (value, min, max) => Math.min(max, Math.max(min, value));
 const normalizeSignals = (signals) => {
     if (!Array.isArray(signals)) {
@@ -23,58 +22,61 @@ const classifyMentalHealth = (score) => {
     }
     return { statusLabel: 'NEUTRAL', emotionPolarity: 'NEUTRAL', riskLevel: 'MEDIUM' };
 };
-const parseJsonFromModel = (raw) => {
-    const trimmed = raw.trim();
-    const stripped = trimmed
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/i, '')
-        .replace(/```\s*$/i, '');
-    const firstBrace = stripped.indexOf('{');
-    const lastBrace = stripped.lastIndexOf('}');
-    const candidate = firstBrace >= 0 && lastBrace >= 0
-        ? stripped.slice(firstBrace, lastBrace + 1)
-        : stripped;
-    try {
-        return JSON.parse(candidate);
-    }
-    catch {
-        return null;
-    }
+// Bag-of-words sentiment lexicon (score contribution per match)
+const POSITIVE_WORDS = {
+    happy: 0.8, glad: 0.7, joyful: 0.8, excited: 0.7, calm: 0.6, relaxed: 0.6,
+    confident: 0.7, hopeful: 0.7, grateful: 0.7, supported: 0.6, understood: 0.6,
+    better: 0.5, good: 0.5, great: 0.7, awesome: 0.8, fine: 0.4, okay: 0.3,
+    rested: 0.5, steady: 0.5, encouraged: 0.6, relieved: 0.6, manageable: 0.5,
+    'sleep well': 0.5, optimistic: 0.7, motivated: 0.7, proud: 0.7
 };
-const keywordBasedMentalHealthFallback = (message, contextMessages) => {
-    const combinedText = [message, ...contextMessages.map((entry) => entry.content)].join(' ').toLowerCase();
-    const positiveSignals = [
-        'calm', 'happy', 'better', 'supported', 'confident', 'relieved', 'hopeful', 'manageable', 'understood', 'grateful',
-        'sleep well', 'rested', 'steady', 'encouraged', 'okay', 'fine'
-    ];
-    const negativeSignals = [
-        'stressed', 'anxious', 'worried', 'overwhelmed', 'hopeless', 'tired', 'burned out', 'burnout', 'cry', 'sad',
-        'panic', 'panic attack', 'cannot sleep', 'insomnia', 'fail', 'failure', 'worthless', 'alone', 'self-harm', 'suicide'
-    ];
-    const matchedSignals = [];
-    let scoreDelta = 0;
-    positiveSignals.forEach((signal) => {
-        if (combinedText.includes(signal)) {
-            matchedSignals.push(signal);
-            scoreDelta += signal.includes('sleep') || signal.includes('rested') ? 2 : 3;
+const NEGATIVE_WORDS = {
+    stressed: -0.7, anxious: -0.8, worried: -0.7, overwhelmed: -0.8, hopeless: -0.9,
+    sad: -0.7, tired: -0.5, 'burned out': -0.8, burnout: -0.8, cry: -0.6,
+    panic: -0.9, 'panic attack': -0.95, 'cannot sleep': -0.6, insomnia: -0.6,
+    fail: -0.6, failure: -0.7, worthless: -0.9, alone: -0.7, 'self-harm': -1.0,
+    suicide: -1.0, depressed: -0.9, frustrated: -0.6, angry: -0.6, scared: -0.7,
+    lonely: -0.7, miserable: -0.8, exhausted: -0.6, drained: -0.6
+};
+// Compute sentiment score (-1 to 1) using bag-of-words on combined text
+const computeSentimentScore = (texts) => {
+    const combined = texts.join(' ').toLowerCase();
+    let total = 0;
+    let count = 0;
+    Object.entries(POSITIVE_WORDS).forEach(([word, weight]) => {
+        if (combined.includes(word)) {
+            total += weight;
+            count += 1;
         }
     });
-    negativeSignals.forEach((signal) => {
-        if (combinedText.includes(signal)) {
-            matchedSignals.push(signal);
-            scoreDelta -= signal === 'self-harm' || signal === 'suicide' ? 8 : signal.includes('panic') ? 6 : 3;
+    Object.entries(NEGATIVE_WORDS).forEach(([word, weight]) => {
+        if (combined.includes(word)) {
+            total += weight;
+            count += 1;
         }
     });
-    scoreDelta = clampNumber(scoreDelta, -10, 10);
-    const reasonSummary = matchedSignals.length > 0
-        ? `The student mentioned ${matchedSignals.slice(0, 3).join(', ')}, which suggests the current wellbeing trend is changing.`
-        : 'The student message did not include strong positive or negative wellbeing signals, so the status is treated as neutral.';
-    return {
-        scoreDelta,
-        ...classifyMentalHealth(scoreDelta),
-        reasonSummary,
-        signals: matchedSignals.slice(0, 6)
-    };
+    if (count === 0)
+        return 0;
+    // Average and clamp to [-1, 1]
+    return clampNumber(total / count, -1, 1);
+};
+// Analyze a session: average sentiment across all messages, map to scoreDelta
+const analyzeSessionSentiment = (currentMessage, contextMessages) => {
+    const allTexts = [currentMessage, ...contextMessages.map((m) => m.content)];
+    const avgScore = computeSentimentScore(allTexts); // -1..1
+    // Convert average (-1..1) to a delta suitable for accumulation (-10..10)
+    const scoreDelta = clampNumber(Math.round(avgScore * 10), -10, 10);
+    // Collect matched signals for transparency
+    const combined = allTexts.join(' ').toLowerCase();
+    const matched = [];
+    [...Object.keys(POSITIVE_WORDS), ...Object.keys(NEGATIVE_WORDS)].forEach((w) => {
+        if (combined.includes(w) && !matched.includes(w))
+            matched.push(w);
+    });
+    const reasonSummary = matched.length > 0
+        ? `Session sentiment averaged ${avgScore.toFixed(2)} based on: ${matched.slice(0, 4).join(', ')}.`
+        : 'No strong sentiment signals detected in the session; treated as neutral.';
+    return { scoreDelta, signals: matched.slice(0, 6), reasonSummary };
 };
 const resolveChatSession = async (sessionId) => {
     const sessionById = await prisma_1.default.chatSession.findUnique({
@@ -94,17 +96,6 @@ const getLatestMentalHealthScore = async (studentId) => {
         select: { statusScore: true }
     });
     return latest?.statusScore ?? 0;
-};
-const getMentalHealthPrompt = async () => {
-    try {
-        const config = await prisma_1.default.systemConfig.findUnique({
-            where: { key: MENTAL_HEALTH_CONFIG_KEY }
-        });
-        return config?.value || (0, prompts_1.getMentalHealthSystemPrompt)();
-    }
-    catch (error) {
-        return (0, prompts_1.getMentalHealthSystemPrompt)();
-    }
 };
 const callOpenRouterCompletion = async (input) => {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -237,57 +228,73 @@ const getLocalSocraticResponse = (message, subject) => {
     const randomIdx = Math.floor(Math.random() * subjectResponses.length);
     return subjectResponses[randomIdx];
 };
+const assessSessionMentalHealth = async (studentId, sessionId) => {
+    const resolvedSession = await resolveChatSession(sessionId);
+    if (!resolvedSession)
+        throw new Error('Session not found');
+    // Load ALL messages in the session (not capped)
+    const rows = await prisma_1.default.chatHistory.findMany({
+        where: { sessionId: resolvedSession.id },
+        orderBy: { createdAt: 'asc' },
+        select: { message: true }
+    });
+    const texts = rows.map((r) => r.message);
+    const sentimentScore = computeSentimentScore(texts); // -1..1
+    const scoreDelta = clampNumber(Math.round(sentimentScore * 10), -10, 10);
+    const combined = texts.join(' ').toLowerCase();
+    const matched = [];
+    [...Object.keys(POSITIVE_WORDS), ...Object.keys(NEGATIVE_WORDS)].forEach((w) => {
+        if (combined.includes(w) && !matched.includes(w))
+            matched.push(w);
+    });
+    const reasonSummary = matched.length > 0
+        ? `Whole-session sentiment: ${sentimentScore.toFixed(2)} based on: ${matched.slice(0, 4).join(', ')}.`
+        : 'No strong sentiment signals detected in the session; treated as neutral.';
+    const currentScore = await getLatestMentalHealthScore(studentId);
+    const nextScore = clampNumber(currentScore + scoreDelta, -100, 100);
+    const scoreProfile = classifyMentalHealth(nextScore);
+    const normalizedSignals = normalizeSignals(matched);
+    const record = await prisma_1.default.mentalHealth.create({
+        data: {
+            studentId,
+            sourceSessionId: resolvedSession.id,
+            statusScore: nextScore,
+            scoreDelta,
+            statusLabel: scoreProfile.statusLabel,
+            reasonSummary,
+            signals: normalizedSignals.join(', '),
+            emotionPolarity: scoreProfile.emotionPolarity,
+            riskLevel: scoreProfile.riskLevel,
+            keywords: normalizedSignals.join(', '),
+            analysisModel: 'bow-sentiment-v1'
+        }
+    });
+    return {
+        sentimentScore,
+        scoreDelta,
+        currentScore: nextScore,
+        ...scoreProfile,
+        signals: normalizedSignals,
+        reasonSummary,
+        recordId: record.id
+    };
+};
+exports.assessSessionMentalHealth = assessSessionMentalHealth;
 const assessMentalHealth = async (input) => {
     const currentScore = await getLatestMentalHealthScore(input.studentId);
     const resolvedSession = input.sessionId ? await resolveChatSession(input.sessionId) : null;
     const recentConversation = resolvedSession ? await (0, exports.getConversationHistory)(resolvedSession.id) : [];
-    const systemPrompt = await getMentalHealthPrompt();
-    const modelUsed = process.env.OPENROUTER_SOCRATIC_MODEL || 'gpt-4o-mini';
-    const promptPayload = {
-        currentScore,
-        studentMessage: input.message,
-        context: input.context || {},
-        recentConversation: recentConversation.slice(-6)
+    // Bag-of-words sentiment analysis over the whole session (current + history)
+    const { scoreDelta, signals, reasonSummary } = analyzeSessionSentiment(input.message, recentConversation);
+    const analysis = {
+        scoreDelta,
+        ...classifyMentalHealth(currentScore + scoreDelta),
+        reasonSummary,
+        signals
     };
-    let analysis = null;
-    try {
-        const modelResponse = await callOpenRouterCompletion({
-            systemPrompt,
-            messages: [{ role: 'user', content: JSON.stringify(promptPayload) }],
-            temperature: 0.2,
-            maxTokens: 320
-        });
-        const parsed = parseJsonFromModel(modelResponse);
-        if (parsed && typeof parsed.scoreDelta === 'number') {
-            const scoreDelta = clampNumber(Math.trunc(parsed.scoreDelta), -10, 10);
-            const classified = classifyMentalHealth(currentScore + scoreDelta);
-            analysis = {
-                scoreDelta,
-                statusLabel: parsed.statusLabel && ['GOOD', 'NEUTRAL', 'BAD'].includes(parsed.statusLabel)
-                    ? parsed.statusLabel
-                    : classified.statusLabel,
-                reasonSummary: typeof parsed.reasonSummary === 'string' && parsed.reasonSummary.trim().length > 0
-                    ? parsed.reasonSummary.trim()
-                    : 'The model returned a partial mental-health assessment without a reason summary.',
-                signals: normalizeSignals(parsed.signals),
-                emotionPolarity: parsed.emotionPolarity && ['POSITIVE', 'NEUTRAL', 'NEGATIVE'].includes(parsed.emotionPolarity)
-                    ? parsed.emotionPolarity
-                    : classified.emotionPolarity,
-                riskLevel: parsed.riskLevel && ['LOW', 'MEDIUM', 'HIGH'].includes(parsed.riskLevel)
-                    ? parsed.riskLevel
-                    : classified.riskLevel
-            };
-        }
-    }
-    catch (error) {
-        console.warn('[AI Service] Mental health model analysis failed, falling back to local heuristic', error);
-    }
-    if (!analysis) {
-        analysis = keywordBasedMentalHealthFallback(input.message, recentConversation);
-    }
     const nextScore = clampNumber(currentScore + analysis.scoreDelta, -100, 100);
     const scoreProfile = classifyMentalHealth(nextScore);
-    const signals = normalizeSignals(analysis.signals);
+    const normalizedSignals = normalizeSignals(analysis.signals);
     const record = await prisma_1.default.mentalHealth.create({
         data: {
             studentId: input.studentId,
@@ -296,11 +303,11 @@ const assessMentalHealth = async (input) => {
             scoreDelta: analysis.scoreDelta,
             statusLabel: analysis.statusLabel || scoreProfile.statusLabel,
             reasonSummary: analysis.reasonSummary,
-            signals: signals.join(', '),
+            signals: normalizedSignals.join(', '),
             emotionPolarity: analysis.emotionPolarity || scoreProfile.emotionPolarity,
             riskLevel: analysis.riskLevel || scoreProfile.riskLevel,
-            keywords: signals.join(', '),
-            analysisModel: modelUsed
+            keywords: normalizedSignals.join(', '),
+            analysisModel: 'bow-sentiment-v1'
         }
     });
     return {
@@ -312,7 +319,7 @@ const assessMentalHealth = async (input) => {
         riskLevel: analysis.riskLevel || scoreProfile.riskLevel,
         currentScore: nextScore,
         recordId: record.id,
-        modelUsed
+        modelUsed: 'bow-sentiment-v1'
     };
 };
 exports.assessMentalHealth = assessMentalHealth;
@@ -388,3 +395,33 @@ const generateSocraticResponse = async (userMessage, sessionId) => {
     return { response, model: activeModel };
 };
 exports.generateSocraticResponse = generateSocraticResponse;
+const generateMentalHealthResponse = async (userMessage, sessionId) => {
+    const activeModel = await (0, exports.getActiveAIModel)();
+    let conversationHistory = [];
+    try {
+        const session = await resolveChatSession(sessionId);
+        if (session) {
+            conversationHistory = await (0, exports.getConversationHistory)(session.id);
+        }
+    }
+    catch (error) {
+        console.error('[AI Service] Error fetching mental chat history:', error);
+    }
+    const systemPrompt = (0, prompts_1.getMentalChatSystemPrompt)();
+    const messages = [
+        ...conversationHistory,
+        { role: 'user', content: userMessage }
+    ];
+    try {
+        const response = await callOpenRouterCompletion({ systemPrompt, messages, temperature: 0.7, maxTokens: 300 });
+        return { response: response || 'I\'m here for you. Can you tell me more about how you\'re feeling?', model: activeModel };
+    }
+    catch (error) {
+        console.error('[AI Service] Mental chat OpenRouter failed, using fallback:', error);
+        return {
+            response: 'I hear you, and I\'m glad you shared that. It sounds like things have been tough. Would you like to talk more about what\'s been on your mind?',
+            model: 'fallback'
+        };
+    }
+};
+exports.generateMentalHealthResponse = generateMentalHealthResponse;

@@ -24,8 +24,8 @@ export const upgradeSubscription = async (req: AuthRequest, res: Response): Prom
     // In a real app, you would integrate Stripe/Paypal here.
     const { plan } = req.body;
     
-    if (plan !== 'BASIC' && plan !== 'PREMIUM') {
-      res.status(400).json({ error: 'Invalid subscription plan' });
+    if (plan !== 'FREE' && plan !== 'PREMIUM') {
+      res.status(400).json({ error: 'Invalid subscription plan. Valid values: FREE, PREMIUM' });
       return;
     }
     

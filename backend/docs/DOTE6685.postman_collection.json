@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "f49587de-3906-4d7f-bfd8-1f4fc8f5041b",
+    "_postman_id": "558354a0-4bb8-420e-9f73-1414a48dd464",
     "name": "DOTE6685",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "17680738",
-    "_collection_link": "https://go.postman.co/collection/17680738-f49587de-3906-4d7f-bfd8-1f4fc8f5041b?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/17680738-558354a0-4bb8-420e-9f73-1414a48dd464?source=collection_link"
   },
   "item": [
     {
@@ -29,9 +29,7 @@
                   "    pm.collectionVariables.set('userId', jsonData.userId);",
                   "});"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -43,7 +41,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Joh123\",\n  \"email\": \"jo23@example.com\",\n  \"phone\": \"\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"phone\": \"\",\n  \"password\": \"password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -60,7 +58,7 @@
                 "register"
               ]
             },
-            "description": "Register a new user. No role is assigned at this step. Use the returned `userId` to call **Select Role** next.\n\nRequired fields: `name`, `email`, `password`\nOptional: `phone`"
+            "description": "Register a new user. No role is assigned at this step. Use the returned `userId` to call **Select Role** next.\n\nRequired fields: `name`, `email` (or `phone`), `password`"
           },
           "response": []
         },
@@ -96,42 +94,27 @@
                 "select-role"
               ]
             },
-            "description": "Assign a role to a newly registered user. Call this immediately after Register using the `{{userId}}` variable saved by the Register test script.\n\nAvailable roles: `STUDENT`, `PARENT`, `TEACHER`, `SCHOOL_ADMIN`"
+            "description": "Assign a role to a newly registered user. Call this immediately after Register using the `{{userId}}` variable.\n\nAvailable roles: `STUDENT`, `PARENT`, `TEACHER`, `SCHOOL_ADMIN`"
           },
           "response": []
         },
         {
-          "name": "3. Login User",
+          "name": "3. Login",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "let json;",
-                  "let token;",
+                  "try { json = pm.response.json(); } catch (e) {}",
                   "",
-                  "pm.test('Response body is valid JSON', function () {",
-                  "    pm.expect(function () {",
-                  "        json = pm.response.json();",
-                  "    }).to.not.throw();",
-                  "});",
-                  "",
-                  "if (json) {",
-                  "    token = json.token || json.access_token || json.authToken || json.jwt || (json.data && (json.data.token || json.data.access_token));",
-                  "}",
-                  "",
-                  "pm.test('Token exists in response and is saved', function () {",
-                  "    pm.expect(token, 'Expected a token field in the response body').to.be.a('string').and.not.empty;",
-                  "",
-                  "    if (token) {",
-                  "        pm.collectionVariables.set('token', token);",
-                  "        pm.expect(pm.collectionVariables.get('token')).to.eql(token);",
-                  "    }",
+                  "pm.test('Token exists and is saved', function () {",
+                  "    const token = json && (json.token || json.access_token);",
+                  "    pm.expect(token).to.be.a('string').and.not.empty;",
+                  "    pm.collectionVariables.set('token', token);",
                   "});"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -148,7 +131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"jo23@example.com\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"email\": \"student@school.com\",\n  \"password\": \"password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -165,7 +148,7 @@
                 "login"
               ]
             },
-            "description": "Login the user if input with correct username and password. Returns with a bearer token for later use. For convenience, the token already retrieved by script already can would be passed to later API calls.\n\nYou may test with different role for some already exists account:\n\n1. Student: [student@school.com](https://mailto:student@school.com)\n    \n2. Parent: [parent@family.com](https://mailto:parent@family.com)\n    \n3. Teacher: [teacher@school.com](https://mailto:teacher@school.com)\n    \n4. School Admin: [admin@school.com](https://mailto:admin@school.com)\n    \n\nWhere the password for all account are: **password123**"
+            "description": "Login and receive a Bearer token saved to `{{token}}`.\n\nSeed accounts (all use password `password123`):\n- `student@school.com` — STUDENT\n- `parent@family.com` — PARENT\n- `teacher@school.com` — TEACHER\n- `admin@school.com` — SCHOOL_ADMIN"
           },
           "response": []
         }
@@ -175,28 +158,19 @@
       "name": "Users",
       "item": [
         {
-          "name": "1. Get User id by Email",
+          "name": "1. Get User UUID by Email",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "let jsonData;",
-                  "try {",
-                  "    jsonData = pm.response.json();",
-                  "} catch (e) {",
-                  "    throw new Error('Response body is not valid JSON');",
-                  "}",
-                  "",
-                  "if (!jsonData || typeof jsonData.id === 'undefined') {",
-                  "    throw new Error('Response JSON does not contain an id field');",
-                  "}",
-                  "",
-                  "pm.collectionVariables.set('id', String(jsonData.id));"
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "if (jsonData && jsonData.id) {",
+                  "    pm.collectionVariables.set('id', String(jsonData.id));",
+                  "}"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -228,12 +202,38 @@
                   "value": "student@school.com"
                 }
               ]
-            }
+            },
+            "description": "Auth: Required. Returns the UUID of a user by email. Saved to `{{id}}`."
           },
           "response": []
         },
         {
-          "name": "2. Get Profile",
+          "name": "2. Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let responseJson;",
+                  "",
+                  "pm.test(\"Profile response contains id\", function () {",
+                  "    responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property(\"id\");",
+                  "    pm.expect(responseJson.id).to.exist;",
+                  "});",
+                  "",
+                  "if (!responseJson) {",
+                  "    responseJson = pm.response.json();",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set(\"studentId\", responseJson.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "auth": {
               "type": "bearer",
@@ -257,13 +257,23 @@
                 "profile"
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - User object"
+            "description": "Auth: Required. Returns the authenticated user's profile."
           },
           "response": []
         },
         {
           "name": "3. Bind Child (Parent Only)",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -290,7 +300,72 @@
                 "bind-child"
               ]
             },
-            "description": "Auth: Required (Role: PARENT)\nSuccess Response: 200 OK - { \"message\": \"Child bound successfully\" }"
+            "description": "Auth: Required (Role: PARENT). Link a student account as a child of the authenticated parent.\n\nError cases:\n- `400` — `childId` missing or target user is not a STUDENT\n- `403` — caller is not a PARENT\n- `404` — no user found with that childId\n- `409` — child already linked to this parent"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get My Children",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/users/children",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "users",
+                "children"
+              ]
+            },
+            "description": "Auth: Required (Role: PARENT). Returns an array of linked student profiles for the authenticated parent."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Unbind Child",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/users/children/:childId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "users",
+                "children",
+                ":childId"
+              ],
+              "variable": [
+                {
+                  "key": "childId",
+                  "value": "{{id}}"
+                }
+              ]
+            },
+            "description": "Auth: Required (Role: PARENT). Remove the link between the authenticated parent and a student child."
           },
           "response": []
         }
@@ -302,6 +377,16 @@
         {
           "name": "Get All Schools",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
@@ -313,13 +398,23 @@
                 "schools"
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - Array of schools"
+            "description": "Auth: Required. Returns all schools."
           },
           "response": []
         },
         {
           "name": "Create School",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -329,7 +424,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"No.2 High School\",\n  \"code\": \"HS002\"\n}",
+              "raw": "{\n  \"name\": \"No. 2 High School\",\n  \"code\": \"HS002\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -345,7 +440,7 @@
                 "schools"
               ]
             },
-            "description": "Auth: Required (Role: SCHOOL_ADMIN)\nSuccess Response: 201 Created - School object"
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Create a new school."
           },
           "response": []
         }
@@ -357,6 +452,16 @@
         {
           "name": "Create Class",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -366,7 +471,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Math 101\",\n  \"code\": \"MATH101\",\n  \"schoolId\": \"school-uuid\"\n}",
+              "raw": "{\n  \"name\": \"English 101\",\n  \"code\": \"ENG101\",\n  \"schoolId\": \"{{schoolId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -382,13 +487,23 @@
                 "classes"
               ]
             },
-            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN)\nSuccess Response: 201 Created - Class object"
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Create a new class."
           },
           "response": []
         },
         {
           "name": "Join Class",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -415,13 +530,23 @@
                 "join"
               ]
             },
-            "description": "Auth: Required (Role: STUDENT)\nSuccess Response: 200 OK - { \"message\": \"Successfully joined the class\" }"
+            "description": "Auth: Required (Role: STUDENT). Join a class by its code."
           },
           "response": []
         },
         {
           "name": "Get Class Students",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
@@ -436,17 +561,28 @@
               ],
               "variable": [
                 {
-                  "key": "classId"
+                  "key": "classId",
+                  "value": ""
                 }
               ]
             },
-            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN)\nSuccess Response: 200 OK - Array of student user objects"
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). List all students in a class."
           },
           "response": []
         },
         {
           "name": "Remove Student from Class",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "DELETE",
             "header": [],
             "url": {
@@ -462,14 +598,16 @@
               ],
               "variable": [
                 {
-                  "key": "classId"
+                  "key": "classId",
+                  "value": ""
                 },
                 {
-                  "key": "studentId"
+                  "key": "studentId",
+                  "value": ""
                 }
               ]
             },
-            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN)\nSuccess Response: 200 OK - { \"message\": \"Student removed from class\" }"
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Remove a student from a class."
           },
           "response": []
         }
@@ -481,6 +619,16 @@
         {
           "name": "Update Progress",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -490,7 +638,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": \"uuid\",\n  \"knowledgePointId\": \"uuid\",\n  \"mastery\": \"PARTIAL\",\n  \"studyTimeSeconds\": 300\n}",
+              "raw": "{\n  \"studentId\": \"{{id}}\",\n  \"knowledgePointId\": \"uuid-here\",\n  \"mastery\": \"PARTIAL\",\n  \"studyTimeSeconds\": 300\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -507,13 +655,23 @@
                 "update"
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - Updated progress object\nmastery values: UNMASTERED, PARTIAL, MASTERED"
+            "description": "Auth: Required. Update a student's mastery of a knowledge point.\n\n`mastery` values: `UNMASTERED`, `PARTIAL`, `MASTERED`"
           },
           "response": []
         },
         {
           "name": "Get Student Progress",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
@@ -527,18 +685,414 @@
               ],
               "variable": [
                 {
-                  "key": "studentId"
+                  "key": "studentId",
+                  "value": "{{studentId}}"
                 }
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - Array of progress objects (includes knowledge point/chapter details)"
+            "description": "Auth: Required. Returns all progress records for a student (flat list) including knowledge point and chapter details, ordered by `updatedAt` desc.\n\nAccess: STUDENT (own only), TEACHER / PARENT / SCHOOL_ADMIN (any student)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Learning Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/progress/:studentId/report",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "progress",
+                ":studentId",
+                "report"
+              ],
+              "variable": [
+                {
+                  "key": "studentId",
+                  "value": "{{id}}"
+                }
+              ]
+            },
+            "description": "Auth: Required. Returns a grouped learning report for a student — organised by subject → chapter → knowledge points.\n\nIncludes a summary with mastery counts and total study time.\n\nAccess: STUDENT (own only), TEACHER / PARENT / SCHOOL_ADMIN (any student).\n\nProgress records are written automatically after every Socratic chat message via background learning behaviour analysis."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "AI & Socratic Tutoring",
+      "name": "Curriculum Management",
+      "item": [
+        {
+          "name": "1. Get All Subjects (full tree)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (Array.isArray(json) && json.length > 0) {",
+                  "    pm.collectionVariables.set('subjectId', json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects"]
+            },
+            "description": "Auth: Required. Returns all subjects with nested chapters and knowledge points. Saves the first subject id to `{{subjectId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Subject by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects/{{subjectId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects", "{{subjectId}}"]
+            },
+            "description": "Auth: Required. Returns a single subject with nested chapters and knowledge points."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (json && json.id) {",
+                  "    pm.collectionVariables.set('subjectId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Physics\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Create a new subject. Saves the returned id to `{{subjectId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Update Subject",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Advanced Physics\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects/{{subjectId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects", "{{subjectId}}"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Update a subject's name."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Delete Subject",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects/{{subjectId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects", "{{subjectId}}"]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Delete a subject by ID. Returns 204 No Content."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get Chapters for Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (Array.isArray(json) && json.length > 0) {",
+                  "    pm.collectionVariables.set('chapterId', json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects/{{subjectId}}/chapters",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects", "{{subjectId}}", "chapters"]
+            },
+            "description": "Auth: Required. Returns all chapters (with knowledge points) for a subject. Saves first chapter id to `{{chapterId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create Chapter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (json && json.id) {",
+                  "    pm.collectionVariables.set('chapterId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mechanics\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/subjects/{{subjectId}}/chapters",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "subjects", "{{subjectId}}", "chapters"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Create a chapter under a subject. Saves the returned id to `{{chapterId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "8. Update Chapter",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Classical Mechanics\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/chapters/{{chapterId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "chapters", "{{chapterId}}"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Update a chapter's name."
+          },
+          "response": []
+        },
+        {
+          "name": "9. Delete Chapter",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/chapters/{{chapterId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "chapters", "{{chapterId}}"]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Delete a chapter by ID. Returns 204 No Content."
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get Knowledge Points for Chapter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (Array.isArray(json) && json.length > 0) {",
+                  "    pm.collectionVariables.set('knowledgePointId', json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/chapters/{{chapterId}}/knowledge-points",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "chapters", "{{chapterId}}", "knowledge-points"]
+            },
+            "description": "Auth: Required. Returns all knowledge points for a chapter. Saves first knowledge point id to `{{knowledgePointId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "11. Create Knowledge Point",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "if (json && json.id) {",
+                  "    pm.collectionVariables.set('knowledgePointId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Newton's Second Law\",\n  \"desc\": \"F = ma — the net force on an object equals its mass times its acceleration.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/chapters/{{chapterId}}/knowledge-points",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "chapters", "{{chapterId}}", "knowledge-points"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Create a knowledge point under a chapter. Saves the returned id to `{{knowledgePointId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "12. Update Knowledge Point",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Newton's Second Law\",\n  \"desc\": \"Updated description.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/knowledge-points/{{knowledgePointId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "knowledge-points", "{{knowledgePointId}}"]
+            },
+            "description": "Auth: Required (Role: TEACHER, SCHOOL_ADMIN). Update a knowledge point's name and/or description."
+          },
+          "response": []
+        },
+        {
+          "name": "13. Delete Knowledge Point",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/curriculum/knowledge-points/{{knowledgePointId}}",
+              "host": ["{{BaseURL}}"],
+              "path": ["curriculum", "knowledge-points", "{{knowledgePointId}}"]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Delete a knowledge point by ID. Returns 204 No Content."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Chat",
       "item": [
         {
           "name": "1. Create Chat Session",
@@ -547,12 +1101,16 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const sessionId = jsonData && jsonData.session && (jsonData.session.id || jsonData.session.sessionId);",
-                  "pm.collectionVariables.set('chatSessionId', String(sessionId));"
+                  "let jsonData;",
+                  "try { jsonData = pm.response.json(); } catch (e) {}",
+                  "",
+                  "pm.test('Session created and chatSessionId saved', function () {",
+                  "    const sessionId = jsonData && jsonData.session && (jsonData.session.id || jsonData.session.sessionId);",
+                  "    pm.expect(sessionId).to.be.a('string').and.not.empty;",
+                  "    pm.collectionVariables.set('chatSessionId', sessionId);",
+                  "});"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -576,7 +1134,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"type\": \"Socratic\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -593,12 +1151,12 @@
                 "sessions"
               ]
             },
-            "description": "Auth: Required\nCreate a new chat session and save the returned session id to {{chatSessionId}}."
+            "description": "Auth: Required. Create a new chat session. Saves the returned id to `{{chatSessionId}}`.\n\n**`type` is required.**\n- `Socratic` — guided questioning tutor; title auto-generated from first message; mental health scored per message.\n- `Mental` — empathetic wellbeing companion; mental health scored per message.\n\nBoth types use the same `/ai/chat` send-message endpoint — the server routes internally based on session type."
           },
           "response": []
         },
         {
-          "name": "2. Get All Student Sessions",
+          "name": "2. Get All My Sessions",
           "request": {
             "auth": {
               "type": "bearer",
@@ -622,7 +1180,7 @@
                 "sessions"
               ]
             },
-            "description": "Auth: Required\nReturns all chat sessions for the authenticated student."
+            "description": "Auth: Required. Returns all chat sessions for the authenticated student, ordered by last accessed."
           },
           "response": []
         },
@@ -652,12 +1210,12 @@
                 "{{chatSessionId}}"
               ]
             },
-            "description": "Auth: Required\nReturns full conversation history for a session."
+            "description": "Auth: Required. Returns full conversation history for the session."
           },
           "response": []
         },
         {
-          "name": "4. Send Message in Session",
+          "name": "4. Send Message",
           "request": {
             "auth": {
               "type": "bearer",
@@ -678,7 +1236,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sessionId\": \"{{chatSessionId}}\",\n  \"message\": \"Why 1+1=2\"\n}",
+              "raw": "{\n  \"sessionId\": \"{{chatSessionId}}\",\n  \"message\": \"Why does 1+1 equal 2?\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -695,13 +1253,23 @@
                 "chat"
               ]
             },
-            "description": "Auth: Required\nSend a student message within a specific chat session."
+            "description": "Auth: Required. Send a message in a session. Behaviour is determined automatically by `sessionType`:\n\n- **Socratic** — AI replies with a guiding question; title set from first message. Learning behaviour analysis runs in the background: engaged knowledge points and mastery level (`UNMASTERED / PARTIAL / MASTERED`) are identified and `Progress` records are upserted automatically.\n- **Mental** — AI replies as an empathetic wellbeing companion. No learning analysis.\n- **Both** — AFINN sentiment is scored and returned in `mentalHealth`."
           },
           "response": []
         },
         {
-          "name": "5. Delete Chat Session",
+          "name": "5. Delete Session",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "DELETE",
             "header": [],
             "url": {
@@ -715,12 +1283,12 @@
                 "{{chatSessionId}}"
               ]
             },
-            "description": "Auth: Required\nDeletes the selected chat session and its messages."
+            "description": "Auth: Required. Deletes the session and all its messages."
           },
           "response": []
         },
         {
-          "name": "6. Mental Health Check",
+          "name": "6. Analyse Whole-Session Mental Health",
           "request": {
             "auth": {
               "type": "bearer",
@@ -734,9 +1302,141 @@
             },
             "method": "POST",
             "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/ai/sessions/{{chatSessionId}}/mental-health",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "ai",
+                "sessions",
+                "{{chatSessionId}}",
+                "mental-health"
+              ]
+            },
+            "description": "Auth: Required. Run AFINN sentiment analysis across **all student messages** in the session and store one summary record. Useful for a post-session wellbeing report.\n\nNo request body — pass the session id in the URL.\n\nResponse includes: `sentimentScore` (-1 to 1), `scoreDelta`, `currentScore`, `statusLabel`, `emotionPolarity`, `riskLevel`, `signals`, `reasonSummary`, `recordId`"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Teacher Dashboard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/dashboard/teacher",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "dashboard",
+                "teacher"
+              ]
+            },
+            "description": "Auth: Required (Role: TEACHER). Returns the teacher's classes, student lists, and progress overview."
+          },
+          "response": []
+        },
+        {
+          "name": "School Admin Dashboard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/dashboard/admin",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "dashboard",
+                "admin"
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Returns school-wide statistics and class summaries."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Subscription",
+      "item": [
+        {
+          "name": "Get My Subscription",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/subscription",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "subscription"
+              ]
+            },
+            "description": "Auth: Required (Role: STUDENT, PARENT). Returns the current subscription plan."
+          },
+          "response": []
+        },
+        {
+          "name": "Upgrade Subscription",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"sessionId\": \"SESSION_ID_HERE\",\r\n}",
+              "raw": "{\n  \"plan\": \"PREMIUM\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -744,16 +1444,201 @@
               }
             },
             "url": {
-              "raw": "{{BaseURL}}/ai/mental-health",
+              "raw": "{{BaseURL}}/subscription/upgrade",
               "host": [
                 "{{BaseURL}}"
               ],
               "path": [
-                "ai",
-                "mental-health"
+                "subscription",
+                "upgrade"
               ]
             },
-            "description": "Auth: Required\nSuccess Response: 200 OK - { \"currentScore\": -12, \"scoreDelta\": -4, \"statusLabel\": \"BAD\", \"reasonSummary\": \"The student mentioned exam pressure and sleep trouble, which suggests a worsening wellbeing trend.\", \"signals\": [\"exam pressure\", \"sleep trouble\"], \"emotionPolarity\": \"NEGATIVE\", \"riskLevel\": \"HIGH\", \"recordId\": \"mental-health-record-id\", \"modelUsed\": \"gpt-4o-mini\" }"
+            "description": "Auth: Required. Update the subscription plan.\n\n`plan` values: `FREE`, `PREMIUM`"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System Admin",
+      "item": [
+        {
+          "name": "Get System Config",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/system/config",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "system",
+                "config"
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Returns all system configuration entries (e.g. active AI model, mental health prompt)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update System Config",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"ACTIVE_AI_MODEL\",\n  \"value\": \"openrouter\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/system/config",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "system",
+                "config"
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Create or update a system configuration key-value pair."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Forbidden Keywords",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/system/keywords",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "system",
+                "keywords"
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Returns all forbidden keywords used by the chat message filter."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Forbidden Keyword",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"word\": \"bullying\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/system/keywords",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "system",
+                "keywords"
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Add a new word to the forbidden keyword list."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Forbidden Keyword",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/system/keywords/:id",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "system",
+                "keywords",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Auth: Required (Role: SCHOOL_ADMIN). Remove a forbidden keyword by its UUID."
           },
           "response": []
         }
@@ -775,46 +1660,11 @@
     }
   ],
   "auth": {
-    "type": "jwt",
-    "jwt": [
+    "type": "bearer",
+    "bearer": [
       {
-        "key": "secret",
-        "value": "dote6685_jwt_secret",
-        "type": "string"
-      },
-      {
-        "key": "algorithm",
-        "value": "HS256",
-        "type": "string"
-      },
-      {
-        "key": "isSecretBase64Encoded",
-        "value": false,
-        "type": "boolean"
-      },
-      {
-        "key": "payload",
-        "value": "{}",
-        "type": "string"
-      },
-      {
-        "key": "addTokenTo",
-        "value": "header",
-        "type": "string"
-      },
-      {
-        "key": "headerPrefix",
-        "value": "Bearer",
-        "type": "string"
-      },
-      {
-        "key": "queryParamKey",
-        "value": "token",
-        "type": "string"
-      },
-      {
-        "key": "header",
-        "value": "{}",
+        "key": "token",
+        "value": "{{token}}",
         "type": "string"
       }
     ]
@@ -824,8 +1674,6 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "packages": {},
-        "requests": {},
         "exec": [
           ""
         ]
@@ -835,8 +1683,6 @@
       "listen": "test",
       "script": {
         "type": "text/javascript",
-        "packages": {},
-        "requests": {},
         "exec": [
           ""
         ]
@@ -846,12 +1692,7 @@
   "variable": [
     {
       "key": "BaseURL",
-      "value": ""
-    },
-    {
-      "key": "token",
-      "value": "",
-      "disabled": true
+      "value": "http://localhost:3000/api"
     },
     {
       "key": "token",
@@ -867,6 +1708,26 @@
     },
     {
       "key": "chatSessionId",
+      "value": ""
+    },
+    {
+      "key": "schoolId",
+      "value": ""
+    },
+    {
+      "key": "studentId",
+      "value": ""
+    },
+    {
+      "key": "subjectId",
+      "value": ""
+    },
+    {
+      "key": "chapterId",
+      "value": ""
+    },
+    {
+      "key": "knowledgePointId",
       "value": ""
     }
   ]
