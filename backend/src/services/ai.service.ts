@@ -290,12 +290,13 @@ export const getConversationHistory = async (sessionId: string): Promise<ChatMes
   try {
     const messages = await prisma.chatHistory.findMany({
       where: { sessionId },
-      orderBy: { createdAt: 'asc' },
-      take: -10, // Get last 10 messages
+      orderBy: { createdAt: 'desc' },
+      take: 10,
       select: { message: true, sender: true }
     });
 
-    return messages.map(msg => ({
+    // Reverse to restore chronological order for the API messages array
+    return messages.reverse().map(msg => ({
       role: msg.sender === 'USER' ? 'user' : 'assistant',
       content: msg.message
     }));

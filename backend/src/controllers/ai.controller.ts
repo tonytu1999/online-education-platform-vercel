@@ -149,6 +149,16 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       : 1;
     const isFirstMessage = priorUserCount === 0;
 
+    console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
+
+    // Generate response BEFORE saving the user message so that getConversationHistory
+    // fetches only prior turns, preventing the current message from appearing twice.
+    let { response: aiResponse, model } = isSocratic
+      ? await generateSocraticResponse(message, session.id, effectiveSystemPrompt)
+      : await generateMentalHealthResponse(message, session.id, effectiveSystemPrompt);
+
+    console.warn('[CHAT] Generated response');
+
     // Save user message — user input is never blocked so students can always express themselves
     await prisma.chatHistory.create({
       data: {
@@ -158,15 +168,6 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
         sender: 'USER'
       }
     });
-
-    console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
-
-    // Generate response based on session type
-    let { response: aiResponse, model } = isSocratic
-      ? await generateSocraticResponse(message, session.id, effectiveSystemPrompt)
-      : await generateMentalHealthResponse(message, session.id, effectiveSystemPrompt);
-
-    console.warn('[CHAT] Generated response');
 
     // Filter AI response — replace with a safe message if it contains forbidden content
     if (await isResponseForbidden(aiResponse)) {
