@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authenticate, AuthRequest, authorizeRole } from '../middleware/auth';
 import {
   chat,
   checkSessionMentalHealth,
@@ -25,13 +25,19 @@ router.get('/sessions', getStudentSessions);
 router.get('/sessions/:sessionId', getSessionDetails);
 router.delete('/sessions/:sessionId', deleteChatSession);
 
-// Chat within a session
+// Chat within a session (students allowed; mental health is auto-tracked as side-effect)
 router.post('/chat', chat);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mental health endpoints — RESTRICTED to TEACHER, SCHOOL_ADMIN, PARENT only
+// Students are forbidden from directly querying mental health data or analysis.
+// ─────────────────────────────────────────────────────────────────────────────
+const mentalHealthGuard = authorizeRole(['TEACHER', 'SCHOOL_ADMIN', 'PARENT']);
+
 // Whole-session mental health analysis (on-demand)
-router.post('/sessions/:sessionId/mental-health', checkSessionMentalHealth);
+router.post('/sessions/:sessionId/mental-health', mentalHealthGuard, checkSessionMentalHealth);
 
 // Mental health score history for charting
-router.get('/mental-health/history', getMentalHealthHistory);
+router.get('/mental-health/history', mentalHealthGuard, getMentalHealthHistory);
 
 export default router;

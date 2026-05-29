@@ -220,11 +220,14 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     console.warn('[CHAT] About to send response');
+    // Strip mental health data from the response for students — analysis runs silently
+    // for internal tracking but students should not see their own assessment results.
+    const isStudent = req.user?.role === 'STUDENT';
     res.json({
       response: aiResponse,
       modelUsed: model,
       sessionId,
-      mentalHealth
+      ...(!isStudent && { mentalHealth })
     });
   } catch (error: any) {
     console.log('[CHAT] ===== CAUGHT ERROR IN CATCH BLOCK =====');
@@ -306,20 +309,18 @@ export const checkMentalHealth = async (req: AuthRequest, res: Response): Promis
 
 export const getMentalHealthHistory = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const caller = req.user;
-    if (!caller) {
+    if (!req.user?.id) {
       res.status(401).json({ error: 'User not authenticated' });
       return;
     }
 
-    // Teachers and admins may pass ?studentId= to view another student's history
-    const isPrivileged = caller.role === 'TEACHER' || caller.role === 'SCHOOL_ADMIN';
-    const requestedId = req.query.studentId as string | undefined;
-    if (requestedId && !isPrivileged) {
-      res.status(403).json({ error: 'Forbidden' });
+    // Route guard ensures only TEACHER, SCHOOL_ADMIN, or PARENT reaches here.
+    // Callers must specify which student's history to view via ?studentId=
+    const studentId = req.query.studentId as string | undefined;
+    if (!studentId) {
+      res.status(400).json({ error: 'studentId query parameter is required' });
       return;
     }
-    const studentId = (isPrivileged && requestedId) ? requestedId : caller.id;
 
     const sessionId = req.query.sessionId as string | undefined;
     const limit = Math.min(parseInt((req.query.limit as string) || '100', 10), 500);
@@ -358,17 +359,27 @@ export const getMentalHealthHistory = async (req: AuthRequest, res: Response): P
 
 export const checkSessionMentalHealth = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const studentId = req.user?.id;
-    const sessionId = Array.isArray(req.params.sessionId)
-      ? req.params.sessionId[0]
-      : req.params.sessionId;
-
-    if (!studentId) {
+    if (!req.user?.id) {
       res.status(401).json({ error: 'User not authenticated' });
       return;
     }
 
-    const result = await assessSessionMentalHealth(studentId, sessionId);
+    const sessionId = Array.isArray(req.params.sessionId)
+      ? req.params.sessionId[0]
+      : req.params.sessionId;
+
+    // Derive the student from the session record — callers are TEACHER/SCHOOL_ADMIN/PARENT
+    // so req.user.id is not the student being assessed.
+    const session = await prisma.chatSession.findFirst({
+      where: { OR: [{ id: sessionId }, { sessionId }] }
+    });
+
+    if (!session) {
+      res.status(404).json({ error: 'Session not found' });
+      return;
+    }
+
+    const result = await assessSessionMentalHealth(session.studentId, session.id);
     res.json(result);
   } catch (error: any) {
     if (error.message === 'Session not found') {

@@ -572,6 +572,7 @@ There are two session types, set once at creation. The single send-message endpo
     }
   }
   ```
+  > **Note:** The `mentalHealth` field is **omitted** when the caller is a `STUDENT`. Mental health analysis still runs and is stored internally, but students do not see their own assessment results. Only `TEACHER`, `SCHOOL_ADMIN`, and `PARENT` callers receive this field.
 - **Error Responses**:
   - `400` — `sessionId` or `message` missing
   - `403` — message blocked by content filter
@@ -586,9 +587,13 @@ There are two session types, set once at creation. The single send-message endpo
 ### 6. Analyse Whole-Session Mental Health (On-Demand)
 - **URL**: `/ai/sessions/:sessionId/mental-health`
 - **Method**: `POST`
-- **Auth**: Required
+- **Auth**: Required — **Roles allowed: `TEACHER`, `SCHOOL_ADMIN`, `PARENT` only**
 - **Body**: none
-- **Notes**: Runs AFINN sentiment across **all** student messages in the session and stores one record. Useful for a summary report after a session ends.
+- **Notes**:
+  - Runs bag-of-words sentiment analysis across **all** student messages in the session and stores one record.
+  - **Students are forbidden** from calling this endpoint (returns `403 Forbidden`).
+  - The student is resolved from the session record — the caller does not need to supply a student ID.
+  - Useful for teachers/parents/admins to obtain a wellbeing summary after a session ends.
 - **Success Response**: `200 OK`
   ```json
   {
@@ -603,6 +608,39 @@ There are two session types, set once at creation. The single send-message endpo
     "recordId": "uuid"
   }
   ```
+- **Error Responses**:
+  - `403 Forbidden` — caller role is `STUDENT` (or any role not in the allowed list)
+
+### 7. Get Mental Health History (Role-Restricted)
+- **URL**: `/ai/mental-health/history`
+- **Method**: `GET`
+- **Auth**: Required — **Roles allowed: `TEACHER`, `SCHOOL_ADMIN`, `PARENT` only**
+- **Query Parameters**:
+  - `studentId` (required) — UUID of the student whose history to retrieve
+  - `sessionId` (optional) — filter to a specific session
+  - `limit` (optional, default 100, max 500)
+- **Notes**: Students cannot access this endpoint (`403 Forbidden`). `studentId` is mandatory — the endpoint will return `400` if omitted.
+- **Success Response**: `200 OK`
+  ```json
+  {
+    "history": [
+      {
+        "id": "uuid",
+        "scoreDelta": -3,
+        "statusScore": -12,
+        "statusLabel": "BAD",
+        "riskLevel": "HIGH",
+        "emotionPolarity": "NEGATIVE",
+        "signals": ["overwhelmed", "cannot sleep"],
+        "createdAt": "2026-05-29T09:12:00Z",
+        "sourceSessionId": "uuid"
+      }
+    ]
+  }
+  ```
+- **Error Responses**:
+  - `400` — `studentId` query parameter missing
+  - `403` — caller role is `STUDENT`
 
 ---
 
