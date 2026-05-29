@@ -256,7 +256,7 @@ const callOpenRouterCompletion = async (input: OpenRouterCompletionInput): Promi
         ...input.messages
       ],
       temperature: input.temperature ?? 0.7,
-      max_tokens: input.maxTokens ?? 500
+      max_tokens: input.maxTokens ?? parseInt(process.env.OPENROUTER_MAX_TOKENS || '500', 10)
     })
   });
 
