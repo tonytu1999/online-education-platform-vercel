@@ -18,7 +18,6 @@ import {
   MasteryDot,
   Pill,
   ProgressBar,
-  ReservedBanner,
   RiskBadge,
   StatTile,
   SubjectChip,
@@ -105,9 +104,6 @@ export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDet
               <h3>{t('Mental health')}</h3>
               <RiskBadge level={student.risk} />
             </div>
-            <ReservedBanner>
-              {t('AI emotion analysis to be integrated post-MVP. Showing reserved aggregate placeholder.')}
-            </ReservedBanner>
             <div className="mh-section">
               <div className="mh-row">
                 <span className="mh-label">{t('Sentiment')}</span>

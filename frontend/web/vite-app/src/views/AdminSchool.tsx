@@ -5,6 +5,7 @@ import type { Klass, NavState } from '../types';
 import { SUBJECTS, SCHOOL, SCHOOL_WEEKLY } from '../lib/data';
 import { classMastery, classRiskDist } from '../lib/mastery';
 import { gradesLabel, schoolName, subjectLabel, t, termLabel } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { pct } from '../lib/format';
 import {
   Card,
@@ -22,7 +23,7 @@ interface ViewAdminSchoolProps {
   schoolNameOverride?: string;
 }
 
-export function ViewAdminSchool({ classes, schoolNameOverride }: ViewAdminSchoolProps) {
+export function ViewAdminSchool({ classes, onNavigate, schoolNameOverride }: ViewAdminSchoolProps) {
   const total = classes.reduce((a, c) => a + c.students.length, 0);
   const grades = [...new Set(classes.map((c) => c.grade))].sort((a, b) => a - b);
 
@@ -79,7 +80,7 @@ export function ViewAdminSchool({ classes, schoolNameOverride }: ViewAdminSchool
         </div>
         <div className="view__actions">
           <button className="btn btn--ghost"><Icon name="filter" size={14} /> {t('Filter')}</button>
-          <button className="btn btn--ghost"><Icon name="download" size={14} /> {t('Export Excel')}</button>
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}><Icon name="download" size={14} /> {t('Export Excel')}</button>
         </div>
       </div>
 
@@ -171,7 +172,11 @@ export function ViewAdminSchool({ classes, schoolNameOverride }: ViewAdminSchool
                     <i className="risk__bullet risk__bullet--medium" style={{ marginLeft: 12 }} />{g.risk.medium}
                   </span>
                 </td>
-                <td><button className="link">{t('View grade')} <Icon name="chevron" size={14} /></button></td>
+                <td>
+                  <button className="link" onClick={(e) => { e.stopPropagation(); onNavigate({ view: 'admin-grade' }); }}>
+                    {t('View grade')} <Icon name="chevron" size={14} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

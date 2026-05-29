@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Klass, NavState } from '../types';
 import { classDisplayName, t } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { lastActiveStr, pct } from '../lib/format';
 import {
   Avatar,
@@ -24,11 +25,14 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
   const [classFilter, setClassFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortKey, setSortKey] = useState('name');
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   const all = classes.flatMap((c) =>
     c.students.map((s) => ({ ...s, className: c.name, classSubject: c.subjectId })),
   );
   const filtered = all.filter((s) => {
+    if (removedIds.has(s.id)) return false;
     if (query && !s.name.toLowerCase().includes(query.toLowerCase())) return false;
     if (classFilter !== 'all' && s.classId !== classFilter) return false;
     if (statusFilter !== 'all' && s.status !== statusFilter) return false;
@@ -42,18 +46,23 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
     return 0;
   });
 
+  function confirmRemove(id: string) {
+    setRemovedIds((prev) => new Set([...prev, id]));
+    setPendingRemoveId(null);
+  }
+
   return (
     <div className="view view-students">
       <div className="view__header">
         <div>
           <h1 className="view__title">{t('Students')}</h1>
           <p className="view__sub">
-            {t('{n} of {n2} students', { n: all.length, n2: all.length })} · {t('{n} classes', { n: classes.length })}
+            {t('{n} of {n2} students', { n: sorted.length, n2: all.length - removedIds.size })} · {t('{n} classes', { n: classes.length })}
           </p>
         </div>
         <div className="view__actions">
-          <button className="btn btn--ghost"><Icon name="download" /> {t('Export')}</button>
-          <button className="btn btn--primary"><Icon name="plus" /> {t('Invite by class code')}</button>
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}><Icon name="download" /> {t('Export')}</button>
+          <button className="btn btn--primary" onClick={() => showToast(t('Coming soon'))}><Icon name="plus" /> {t('Invite by class code')}</button>
         </div>
       </div>
 
@@ -91,7 +100,7 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
               <th>{t('Last active')}</th>
               <th>{t('Mastery')}</th>
               <th>{t('Status')}</th>
-              <th style={{ width: 40 }} />
+              <th style={{ width: 110, textAlign: 'right' }} />
             </tr>
           </thead>
           <tbody>
@@ -116,8 +125,33 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
                   </div>
                 </td>
                 <td><Pill tone={s.status === 'active' ? 'positive' : 'neutral'}>{t(s.status)}</Pill></td>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <button className="iconbtn iconbtn--sm" title="More"><Icon name="more" size={16} /></button>
+                <td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                  {pendingRemoveId === s.id ? (
+                    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                      <button
+                        className="btn btn--ghost"
+                        style={{ fontSize: '0.75rem', padding: '2px 8px', color: 'var(--risk-high)' }}
+                        onClick={() => confirmRemove(s.id)}
+                      >
+                        {t('Confirm')}
+                      </button>
+                      <button
+                        className="btn btn--ghost"
+                        style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                        onClick={() => setPendingRemoveId(null)}
+                      >
+                        {t('Cancel')}
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      className="link"
+                      style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}
+                      onClick={() => setPendingRemoveId(s.id)}
+                    >
+                      {t('Remove')}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -125,7 +159,7 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
         </table>
 
         <div className="table__foot">
-          <span>{t('{n} of {n2} students', { n: sorted.length, n2: all.length })}</span>
+          <span>{t('{n} of {n2} students', { n: sorted.length, n2: all.length - removedIds.size })}</span>
         </div>
       </Card>
     </div>

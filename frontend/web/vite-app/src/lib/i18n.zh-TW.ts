@@ -352,6 +352,9 @@ export const ZH_TW: Record<string, string> = {
   'just now': '剛剛',
   '{n}h ago': '{n} 小時前',
   '{n}d ago': '{n} 天前',
+  '{n}m': '{n} 分',
+  '{h}h {m}m': '{h} 小時 {m} 分',
+  '{h}h': '{h} 小時',
 
   // ── Subscription modal ────────────────────────────────────────────────
   'Simple, transparent pricing. Cancel anytime.': '簡單透明的定價，隨時可取消。',

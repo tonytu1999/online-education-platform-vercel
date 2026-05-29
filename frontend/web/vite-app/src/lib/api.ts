@@ -30,6 +30,17 @@ export interface ApiStudent {
   id: string;
   name: string;
   email?: string;
+  joinedAt?: string;
+  lastActiveAt?: string | null;
+  studyTimeSeconds?: number;
+  masteredCount?: number;
+  partialCount?: number;
+  progressCount?: number;
+  mentalHealthRisk?: string | null;
+  mentalHealthScore?: number | null;
+  mentalHealthPolarity?: string | null;
+  mentalHealthKeywords?: string | null;
+  mentalHealthTrend?: number[];
 }
 
 function authHeaders() {

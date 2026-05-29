@@ -20,11 +20,29 @@ async function upsertKnowledgePoint(chapterId: string, name: string, desc: strin
 }
 
 async function main() {
+  console.log('Clearing old data...');
+  await prisma.chatHistory.deleteMany();
+  await prisma.chatSession.deleteMany();
+  await prisma.mentalHealth.deleteMany();
+  await prisma.progress.deleteMany();
+  await prisma.classStudent.deleteMany();
+  await prisma.userParent.deleteMany();
+  await prisma.knowledgePoint.deleteMany();
+  await prisma.chapter.deleteMany();
+  await prisma.subject.deleteMany();
+  await prisma.class.deleteMany();
+  await prisma.school.deleteMany();
+  await prisma.forbiddenKeyword.deleteMany();
+  await prisma.systemConfig.deleteMany();
+  await prisma.user.deleteMany();
+  console.log('Old data cleared.');
+
   console.log('Seeding database...');
 
   const password = await bcrypt.hash('password123', 10);
 
   // ── Users ────────────────────────────────────────────────────────────────
+  console.log('[1/8] Seeding users...');
 
   await prisma.user.upsert({
     where: { email: 'admin@school.com' },
@@ -82,6 +100,7 @@ async function main() {
   });
 
   // ── Relationships ────────────────────────────────────────────────────────
+  console.log('[2/8] Seeding parent-child relationships...');
 
   await prisma.userParent.upsert({
     where: { parentId_childId: { parentId: parent.id, childId: student.id } },
@@ -90,6 +109,7 @@ async function main() {
   });
 
   // ── Schools ──────────────────────────────────────────────────────────────
+  console.log('[3/8] Seeding schools...');
 
   const school = await prisma.school.upsert({
     where: { code: 'HS001' },
@@ -104,6 +124,7 @@ async function main() {
   });
 
   // ── Legacy class (keeps student@school.com enrolment intact) ─────────────
+  console.log('[4/8] Seeding classes...');
 
   const mathClass = await prisma.class.upsert({
     where: { code: 'MATH101' },
@@ -148,6 +169,7 @@ async function main() {
 
   // ── Students: 10 per class, 480 total ────────────────────────────────────
   // 20 surnames × 24 given names = 480 unique combinations
+  console.log('[5/8] Seeding students (480 total across 48 classes)...');
 
   const surnames = [
     'Chan', 'Wong', 'Lee',  'Lau',  'Cheung', 'Ng',   'Ho',  'Tam',
@@ -163,6 +185,7 @@ async function main() {
 
   let studentIdx = 0;
   for (const form of forms) {
+    console.log(`  → Form ${form} (${classLetters.length} classes × 10 students)`);
     for (const letter of classLetters) {
       const code = `${form}${letter}`;
       for (let i = 0; i < 10; i++) {
@@ -188,8 +211,10 @@ async function main() {
   }
 
   // ── Subjects, Chapters & Knowledge Points (HKDSE curriculum) ────────────
+  console.log('[6/8] Seeding subjects, chapters & knowledge points...');
 
   // ── Mathematics ──────────────────────────────────────────────────────────
+  console.log('  → Mathematics');
 
   const maths = await prisma.subject.upsert({
     where: { name: 'Mathematics' },
@@ -275,6 +300,7 @@ async function main() {
   await upsertKnowledgePoint(mathM2.id, '微分方程', 'First-order separable differential equations; first-order linear differential equations; solving with initial conditions; modelling applications.');
 
   // ── English Language ──────────────────────────────────────────────────────
+  console.log('  → English Language');
 
   const english = await prisma.subject.upsert({
     where: { name: 'English Language' },
@@ -308,6 +334,7 @@ async function main() {
   await upsertKnowledgePoint(engLang.id, 'Discourse and Cohesion', 'Analyse reference, substitution, ellipsis and discourse markers; understand how cohesive devices achieve coherence across a text.');
 
   // ── Chinese Language (语文) ───────────────────────────────────────────────
+  console.log('  → Chinese Language');
 
   const chinese = await prisma.subject.upsert({
     where: { name: 'Chinese Language' },
@@ -340,6 +367,7 @@ async function main() {
   await upsertKnowledgePoint(chineseLang.id, '标点符号与修辞', '正确使用各类标点符号（引号、顿号、分号等）；掌握并运用多种修辞手法以提升文章表达效果。');
 
   // ── Sample Progress ──────────────────────────────────────────────────────
+  console.log('[7/8] Seeding sample progress & mental health records...');
 
   const sampleKp = await prisma.knowledgePoint.findFirst({ where: { name: '二次方程式' } });
   if (sampleKp) {
@@ -371,6 +399,7 @@ async function main() {
   }
 
   // ── System Config ────────────────────────────────────────────────────────
+  console.log('[8/8] Seeding system config & forbidden keywords...');
 
   await prisma.systemConfig.upsert({
     where: { key: 'MENTAL_HEALTH_SYSTEM_PROMPT' },

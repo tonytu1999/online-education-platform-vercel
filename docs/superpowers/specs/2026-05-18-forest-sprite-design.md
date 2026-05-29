@@ -265,6 +265,90 @@ animal-[name]
 
 ---
 
+## 后端集成
+
+### 学习进度 API
+
+池塘动物来访由 **后端学习进度系统** 驱动，无需前端手动触发。
+
+#### 进度自动更新流程
+
+```
+学生发送 Socratic 消息
+  → 后端 POST /api/ai/chat 返回 AI 回复
+  → 后台 analyzeLearningBehavior() 异步执行
+  → AI 识别对话中涉及的知识点和掌握程度
+  → 自动 upsert Progress 记录（掌握度只升不降）
+```
+
+**关键行为：** 掌握度是单向递进的 — `UNMASTERED → PARTIAL → MASTERED`，不会因为后续对话而降级。
+
+#### 创建 Socratic 会话（必须传 subject）
+
+```http
+POST /api/ai/sessions
+{
+  "type": "Socratic",
+  "subject": "Mathematics",   ← 必须传，否则 AI 会对所有科目知识点做分析，准确率低
+  "topic": "Quadratic Equations"  ← 可选，仅作标记
+}
+```
+
+#### 章节完成判定
+
+前端通过 `GET /api/progress/:studentId/report` 获取分组报告，判断章节是否完成：
+
+```typescript
+// 示例：章节完成阈值 — 80% 知识点达到 PARTIAL 或以上
+function isChapterComplete(chapter: ChapterReport): boolean {
+  const engaged = chapter.knowledgePoints.filter(
+    kp => kp.mastery === 'PARTIAL' || kp.mastery === 'MASTERED'
+  );
+  return engaged.length / chapter.knowledgePoints.length >= 0.8;
+}
+```
+
+报告结构：
+```json
+{
+  "subjects": [{
+    "name": "Mathematics",
+    "chapters": [{
+      "id": "...",
+      "name": "Number & Algebra",
+      "summary": {
+        "totalKnowledgePoints": 8,
+        "mastered": 3,
+        "partial": 4,
+        "unmastered": 1,
+        "totalStudyTimeSeconds": 240
+      },
+      "knowledgePoints": [
+        { "id": "...", "name": "二次方程式", "mastery": "MASTERED" },
+        ...
+      ]
+    }]
+  }]
+}
+```
+
+#### 推荐轮询策略
+
+在 `student.ai.tsx` 页面中，每次 AI 消息返回后轮询一次进度报告（火-和-遗忘分析约 2–5 秒完成）：
+
+```typescript
+// Send message → wait 3s → refresh progress → check chapter completion
+const handleSendMessage = async () => {
+  await sendMessage();
+  setTimeout(async () => {
+    const report = await fetchProgressReport(studentId);
+    checkForNewCompletions(report);  // triggers onChapterComplete if needed
+  }, 3000);
+};
+```
+
+---
+
 ## 状态驱动逻辑
 
 ### 对话状态

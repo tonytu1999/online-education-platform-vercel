@@ -5,13 +5,13 @@ import type { Klass, NavState } from '../types';
 import { STRESS_KEYWORDS } from '../lib/data';
 import { classAvgSentiment, classRiskDist } from '../lib/mastery';
 import { classDisplayName, t } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { classNames, lastActiveStr } from '../lib/format';
 import {
   Avatar,
   Card,
   FilterSelect,
   Icon,
-  ReservedBanner,
   RiskBadge,
   StatTile,
 } from '../components/primitives';
@@ -20,10 +20,9 @@ import { Donut, KeywordCloud, SentimentMeter, Sparkline } from '../components/ch
 interface ClassMentalHealthProps {
   klass: Klass;
   onNavigate: (n: NavState) => void;
-  headless?: boolean;
 }
 
-export function ClassMentalHealth({ klass, onNavigate, headless }: ClassMentalHealthProps) {
+export function ClassMentalHealth({ klass, onNavigate }: ClassMentalHealthProps) {
   const [filter, setFilter] = useState('all');
   const risk = classRiskDist(klass);
   const avgS = classAvgSentiment(klass);
@@ -35,11 +34,6 @@ export function ClassMentalHealth({ klass, onNavigate, headless }: ClassMentalHe
 
   return (
     <div className="class-mh">
-      {!headless && (
-        <ReservedBanner>
-          {t('Mental health module ships UI-first. Sentiment, stress keywords, and risk level shown here are placeholder aggregates — raw conversations are never displayed.')}
-        </ReservedBanner>
-      )}
 
       <div className="mh-grid">
         <Card>
@@ -184,13 +178,9 @@ export function ViewMentalHealth({ classes, onNavigate }: ViewMentalHealthProps)
           <p className="view__sub">{t('Class-level aggregates · raw conversation data is never shown')}</p>
         </div>
         <div className="view__actions">
-          <button className="btn btn--ghost"><Icon name="download" size={14} /> {t('Export aggregate')}</button>
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}><Icon name="download" size={14} /> {t('Export aggregate')}</button>
         </div>
       </div>
-
-      <ReservedBanner>
-        {t('AI emotion analysis (sentiment, stress keywords, risk) ships post-MVP. The interface and data structures are reserved.')}
-      </ReservedBanner>
 
       <div className="kpi-grid">
         <StatTile label={t('Students monitored')} value={totalS} hint={t('{n} classes', { n: classes.length })} />
@@ -215,7 +205,7 @@ export function ViewMentalHealth({ classes, onNavigate }: ViewMentalHealthProps)
         </div>
       </Card>
 
-      <ClassMentalHealth klass={klass} onNavigate={onNavigate} headless />
+      <ClassMentalHealth klass={klass} onNavigate={onNavigate} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { Klass, NavState } from '../types';
 import { SUBJECTS } from '../lib/data';
 import { classMastery, classRiskDist } from '../lib/mastery';
 import { classDisplayName, subjectLabel, t } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { pct } from '../lib/format';
 import { Card, FilterSelect, Icon, ProgressBar, SubjectChip } from '../components/primitives';
 
@@ -31,7 +32,7 @@ export function ViewAdminClasses({ classes, onNavigate }: ViewAdminClassesProps)
           <p className="view__sub">{t('{n} classes total', { n: classes.length })}</p>
         </div>
         <div className="view__actions">
-          <button className="btn btn--ghost">
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>
             <Icon name="download" size={14} /> {t('Export Excel')}
           </button>
         </div>

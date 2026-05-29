@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Klass, Lang, NavState, Role, Student, TweakState, UserProfile } from './types';
-import { CLASSES_ALL, CLASSES_TEACHER } from './lib/data';
+import { CLASSES_ALL, CLASSES_TEACHER, SUBJECTS } from './lib/data';
 import { hexToSoft } from './lib/format';
-import { classDisplayName, setLang, t, useLang } from './lib/i18n';
+import { classDisplayName, setLang, subjectLabel, t, useLang } from './lib/i18n';
 import {
   apiGetAdminDashboard,
   apiGetClassStudents,
@@ -12,6 +12,7 @@ import {
   type ApiSchoolStat,
 } from './lib/api';
 import { buildKlassFromStat, buildPlaceholderStudents, buildStudentFromReal } from './lib/mappers';
+import { registerToast } from './lib/toast';
 
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
@@ -60,6 +61,8 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => { registerToast(setToast); }, []);
 
   // Real data from backend — fall back to mock if API unavailable
   const [realClasses, setRealClasses] = useState<Klass[] | null>(null);
@@ -94,31 +97,32 @@ export function App() {
           buildKlassFromStat(s, buildPlaceholderStudents(s.classId, s.totalStudents))
         );
         setRealClasses(klasses);
+        stats.forEach((s) => fetchStudentsForClass(s.classId));
       }).catch(() => { /* silently fall back to mock data */ });
     } else {
       apiGetAdminDashboard().then(setApiSchool).catch(() => {});
     }
   }, [authUser]);
 
-  // Lazy-load real students when navigating to a class detail
-  useEffect(() => {
-    const classId = nav.classId;
-    if (nav.view !== 'class-detail' || !classId) return;
+  function fetchStudentsForClass(classId: string) {
     if (studentCache[classId] || fetchingStudents.current.has(classId)) return;
-
     fetchingStudents.current.add(classId);
     apiGetClassStudents(classId).then((apiStudents) => {
       const students = apiStudents.map((s) => buildStudentFromReal(s, classId));
       setStudentCache((prev) => ({ ...prev, [classId]: students }));
-      // Update the matching class in realClasses with real student objects
       setRealClasses((prev) =>
-        prev
-          ? prev.map((k) => k.id === classId ? { ...k, students } : k)
-          : prev
+        prev ? prev.map((k) => k.id === classId ? { ...k, students } : k) : prev
       );
     }).catch(() => {
       fetchingStudents.current.delete(classId);
     });
+  }
+
+  // Lazy-load real students when navigating to a class detail
+  useEffect(() => {
+    const classId = nav.classId;
+    if (nav.view !== 'class-detail' || !classId) return;
+    fetchStudentsForClass(classId);
   }, [nav.view, nav.classId]);
 
   function handleLogin(token: string, user: AuthUser) {
@@ -175,6 +179,12 @@ export function App() {
     name: authUser.name,
     role: isAdmin ? t('School Administrator') : t('Mathematics · Grade 7–8'),
   };
+
+  if (!isAdmin) {
+    const subjectIds = [...new Set(classes.map((c) => c.subjectId))];
+    const subjects = subjectIds.map((id) => SUBJECTS.find((s) => s.id === id)).filter(Boolean);
+    profile.role = subjects.length > 0 ? subjects.map((s) => subjectLabel(s!)).join(' · ') : t('Teacher');
+  }
 
   const homeNav: NavState = { view: isAdmin ? 'admin-school' : 'dashboard' };
   const home = () => ({ label: isAdmin ? t('School Overview') : t('Dashboard'), onClick: () => setNav(homeNav) });
@@ -277,6 +287,9 @@ export function App() {
       </div>
 
       {showSubscription && <SubscriptionModal onClose={() => setShowSubscription(false)} />}
+      {toast && (
+        <div className="toast-banner" role="status">{toast}</div>
+      )}
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}

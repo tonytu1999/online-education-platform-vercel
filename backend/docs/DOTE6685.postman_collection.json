@@ -1134,7 +1134,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"Socratic\",\n  \"systemPrompt\": \"You are a DSE Mathematics tutor for Form 4 students. Always respond in Traditional Chinese.\"\n}",
+              "raw": "{\n  \"type\": \"Socratic\",\n  \"subject\": \"Mathematics\",\n  \"topic\": \"Quadratic Equations\",\n  \"systemPrompt\": \"You are a DSE Mathematics tutor for Form 4 students. Always respond in Traditional Chinese.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1151,7 +1151,7 @@
                 "sessions"
               ]
             },
-            "description": "Auth: Required. Create a new chat session. Saves the returned id to `{{chatSessionId}}`.\n\n**`type` is required.**\n- `Socratic` — guided questioning tutor; title auto-generated from first message; mental health scored per message.\n- `Mental` — empathetic wellbeing companion; mental health scored per message.\n\n**`systemPrompt` (optional)** — Custom instruction stored on the session and used as the AI system prompt for every message. Overrides the default Socratic or Mental Health prompt. Set it once here; no need to pass it in individual messages.\n\nBoth types use the same `/ai/chat` send-message endpoint — the server routes internally based on session type."
+            "description": "Auth: Required. Create a new chat session. Saves the returned id to `{{chatSessionId}}`.\n\n**`type` is required.**\n- `Socratic` — guided questioning tutor; title auto-generated from first message; mental health scored per message; learning progress auto-updated after each message.\n- `Mental` — empathetic wellbeing companion; mental health scored per message.\n\n**`subject` (optional, strongly recommended for Socratic)** — Subject name (e.g. `\"Mathematics\"`, `\"English Language\"`, `\"Chinese Language\"`). Scopes the learning analysis to knowledge points under that subject only. Without this, the AI analyses against all knowledge points across all subjects, which reduces accuracy.\n\n**`topic` (optional)** — Freeform topic label (e.g. `\"Quadratic Equations\"`). Stored on the session for reference; does not affect AI routing.\n\n**`systemPrompt` (optional)** — Custom instruction stored on the session and used as the AI system prompt for every message. Overrides the default Socratic or Mental Health prompt. Set it once here; no need to pass it in individual messages.\n\nBoth types use the same `/ai/chat` send-message endpoint — the server routes internally based on session type."
           },
           "response": []
         },
@@ -1253,7 +1253,7 @@
                 "chat"
               ]
             },
-            "description": "Auth: Required. Send a message in a session. Behaviour is determined automatically by `sessionType`:\n\n- **Socratic** — AI replies with a guiding question; title set from first message. Learning behaviour analysis runs in the background: engaged knowledge points and mastery level (`UNMASTERED / PARTIAL / MASTERED`) are identified and `Progress` records are upserted automatically.\n- **Mental** — AI replies as an empathetic wellbeing companion. No learning analysis.\n- **Both** — AFINN sentiment is scored and returned in `mentalHealth`.\n\nThe custom system prompt set when the session was created is applied automatically — no need to pass it here."
+            "description": "Auth: Required. Send a message in a session. Behaviour is determined automatically by `sessionType`:\n\n- **Socratic** — AI replies with a guiding question; title set from first message. Learning behaviour analysis runs in the background: engaged knowledge points and mastery level (`UNMASTERED / PARTIAL / MASTERED`) are identified and `Progress` records are upserted automatically. **Mastery only moves forward** — once a knowledge point reaches `MASTERED`, subsequent messages cannot downgrade it.\n- **Mental** — AI replies as an empathetic wellbeing companion. No learning analysis.\n- **Both** — AFINN sentiment is scored and returned in `mentalHealth`.\n\nThe custom system prompt set when the session was created is applied automatically — no need to pass it here.\n\n**Tip:** Pass `subject` when creating the session (`POST /ai/sessions`) so the background analysis is scoped to the correct curriculum knowledge points."
           },
           "response": []
         },

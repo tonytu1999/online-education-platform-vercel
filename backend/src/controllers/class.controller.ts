@@ -47,7 +47,7 @@ export const joinClass = async (req: AuthRequest, res: Response): Promise<void> 
 export const getStudents = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const classId = req.params.classId as string;
-    
+
     if (req.user!.role === 'TEACHER') {
       const cls = await prisma.class.findUnique({ where: { id: classId } });
       if (cls?.teacherId !== req.user!.id) {
@@ -56,17 +56,77 @@ export const getStudents = async (req: AuthRequest, res: Response): Promise<void
       }
     }
 
-    const students = await prisma.user.findMany({
-      where: {
-        role: 'STUDENT',
-        studentClasses: {
-          some: { classId }
-        }
+    const classStudents = await prisma.classStudent.findMany({
+      where: { classId },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            progressRecords: {
+              select: { mastery: true, studyTimeSeconds: true, updatedAt: true },
+            },
+            mentalHealthRecords: {
+              orderBy: { createdAt: 'desc' },
+              take: 14,
+              select: { statusScore: true, riskLevel: true, emotionPolarity: true, keywords: true },
+            },
+            chatSessions: {
+              orderBy: { lastAccessedAt: 'desc' },
+              take: 1,
+              select: { lastAccessedAt: true },
+            },
+          },
+        },
       },
-      select: { id: true, name: true, email: true, phone: true }
+      orderBy: { createdAt: 'asc' },
     });
 
-    res.json(students);
+    const now = new Date();
+
+    const result = classStudents.map((cs) => {
+      const s = cs.student;
+      const progress = s.progressRecords;
+      const mhRecords = s.mentalHealthRecords; // desc by createdAt
+      const latestMH = mhRecords[0] ?? null;
+
+      const latestProgressAt = progress.reduce<Date | null>(
+        (max, p) => (!max || p.updatedAt > max ? p.updatedAt : max),
+        null,
+      );
+      const latestChatAt = s.chatSessions[0]?.lastAccessedAt ?? null;
+      const lastActiveAt =
+        latestProgressAt && latestChatAt
+          ? latestProgressAt > latestChatAt ? latestProgressAt : latestChatAt
+          : latestProgressAt ?? latestChatAt;
+
+      const studyTimeSeconds = progress.reduce((sum, p) => sum + p.studyTimeSeconds, 0);
+      const masteredCount = progress.filter((p) => p.mastery === 'MASTERED').length;
+      const partialCount = progress.filter((p) => p.mastery === 'PARTIAL').length;
+
+      // Mental health trend: statusScores oldest→newest (API returns newest first)
+      const mentalHealthTrend = [...mhRecords].reverse().map((r) => r.statusScore);
+
+      return {
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        joinedAt: cs.createdAt,
+        lastActiveAt,
+        studyTimeSeconds,
+        masteredCount,
+        partialCount,
+        progressCount: progress.length,
+        mentalHealthRisk: latestMH?.riskLevel ?? null,
+        mentalHealthScore: latestMH?.statusScore ?? null,
+        mentalHealthPolarity: latestMH?.emotionPolarity ?? null,
+        mentalHealthKeywords: latestMH?.keywords ?? null,
+        mentalHealthTrend,
+      };
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch students' });
   }
