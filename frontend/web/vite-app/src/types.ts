@@ -39,6 +39,7 @@ export interface Student {
   risk: RiskLevel;
   sentiment: number;
   sentimentTrend: number[];
+  mentalHealthKeywords?: string;
   streak: number;
   completionRate: number;
   status: 'active' | 'paused';

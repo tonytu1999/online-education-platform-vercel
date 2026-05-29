@@ -44,6 +44,11 @@ export function NotificationsPanel({ onClose }: Props) {
         {unread > 0 && <button className="btn btn--text" onClick={markAll}>{t('Mark all read')}</button>}
       </div>
       <div className="notif-panel__list">
+        {items.length === 0 && (
+          <div style={{ padding: '20px 16px', color: 'var(--text-muted)', fontSize: 13, textAlign: 'center' }}>
+            {t('No notifications')}
+          </div>
+        )}
         {items.map((n) => (
           <div key={n.id} className={`notif-item${n.unread ? ' notif-item--unread' : ''}`}>
             <div className={`activity__icon activity__icon--${n.kind}`}>{n.icon}</div>

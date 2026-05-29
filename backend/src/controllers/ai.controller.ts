@@ -140,14 +140,23 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    const effectiveSystemPrompt = session.systemPrompt ?? undefined;
-
     // Check if this is the first user message (for Socratic title generation)
     const isSocratic = session.sessionType === 'SOCRATIC';
     const priorUserCount = isSocratic
       ? await prisma.chatHistory.count({ where: { sessionId: session.id, sender: 'USER' } })
       : 1;
     const isFirstMessage = priorUserCount === 0;
+
+    console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
+
+    // Generate response BEFORE saving the user message so that getConversationHistory
+    // fetches only prior turns, preventing the current message from appearing twice.
+    // System prompt is read from the session directly inside each service function.
+    let { response: aiResponse, model } = isSocratic
+      ? await generateSocraticResponse(message, session.id)
+      : await generateMentalHealthResponse(message, session.id);
+
+    console.warn('[CHAT] Generated response');
 
     // Save user message — user input is never blocked so students can always express themselves
     await prisma.chatHistory.create({
@@ -158,15 +167,6 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
         sender: 'USER'
       }
     });
-
-    console.warn('[CHAT] About to generate AI response, type:', session.sessionType);
-
-    // Generate response based on session type
-    let { response: aiResponse, model } = isSocratic
-      ? await generateSocraticResponse(message, session.id, effectiveSystemPrompt)
-      : await generateMentalHealthResponse(message, session.id, effectiveSystemPrompt);
-
-    console.warn('[CHAT] Generated response');
 
     // Filter AI response — replace with a safe message if it contains forbidden content
     if (await isResponseForbidden(aiResponse)) {
@@ -301,6 +301,58 @@ export const checkMentalHealth = async (req: AuthRequest, res: Response): Promis
   } catch (error: any) {
     console.error('[MENTAL HEALTH] Error:', error?.message, error?.stack);
     res.status(500).json({ error: 'Mental health check failed', details: error?.message });
+  }
+};
+
+export const getMentalHealthHistory = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const caller = req.user;
+    if (!caller) {
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
+
+    // Teachers and admins may pass ?studentId= to view another student's history
+    const isPrivileged = caller.role === 'TEACHER' || caller.role === 'SCHOOL_ADMIN';
+    const requestedId = req.query.studentId as string | undefined;
+    if (requestedId && !isPrivileged) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    const studentId = (isPrivileged && requestedId) ? requestedId : caller.id;
+
+    const sessionId = req.query.sessionId as string | undefined;
+    const limit = Math.min(parseInt((req.query.limit as string) || '100', 10), 500);
+
+    const records = await prisma.mentalHealth.findMany({
+      where: {
+        studentId,
+        ...(sessionId ? { sourceSessionId: sessionId } : {})
+      },
+      orderBy: { createdAt: 'asc' },
+      take: limit,
+      select: {
+        id: true,
+        scoreDelta: true,
+        statusScore: true,
+        statusLabel: true,
+        riskLevel: true,
+        emotionPolarity: true,
+        signals: true,
+        createdAt: true,
+        sourceSessionId: true
+      }
+    });
+
+    const history = records.map(r => ({
+      ...r,
+      signals: r.signals ? r.signals.split(',').map((s: string) => s.trim()).filter(Boolean) : []
+    }));
+
+    res.json({ history });
+  } catch (error: any) {
+    console.error('[MENTAL HEALTH HISTORY] Error:', error?.message);
+    res.status(500).json({ error: 'Failed to fetch mental health history' });
   }
 };
 

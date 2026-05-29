@@ -109,6 +109,7 @@ export function buildStudentFromReal(apiStudent: ApiStudent, classId: string): S
     risk,
     sentiment,
     sentimentTrend,
+    mentalHealthKeywords: apiStudent.mentalHealthKeywords ?? undefined,
     streak: Math.round(rand() * 12),
     completionRate,
     status: lastActiveHours < 24 * 30 ? 'active' : 'paused',

@@ -8,10 +8,16 @@ import { classDisplayName, setLang, subjectLabel, t, useLang } from './lib/i18n'
 import {
   apiGetAdminDashboard,
   apiGetClassStudents,
+  apiGetCurriculum,
+  apiGetMentalHealthHistory,
+  apiGetStudentReport,
   apiGetTeacherDashboard,
+  type ApiMentalHealthRecord,
   type ApiSchoolStat,
+  type ApiStudentReport,
 } from './lib/api';
 import { buildKlassFromStat, buildPlaceholderStudents, buildStudentFromReal } from './lib/mappers';
+import { setCurriculum } from './lib/mastery';
 import { registerToast } from './lib/toast';
 
 import { Sidebar } from './components/Sidebar';
@@ -69,6 +75,10 @@ export function App() {
   const [apiSchool, setApiSchool] = useState<ApiSchoolStat | null>(null);
   const [studentCache, setStudentCache] = useState<Record<string, Student[]>>({});
   const fetchingStudents = useRef<Set<string>>(new Set());
+  const [reportCache, setReportCache] = useState<Record<string, ApiStudentReport>>({});
+  const fetchingReports = useRef<Set<string>>(new Set());
+  const [mhHistoryCache, setMhHistoryCache] = useState<Record<string, ApiMentalHealthRecord[]>>({});
+  const fetchingMhHistory = useRef<Set<string>>(new Set());
 
   useLang();
 
@@ -85,6 +95,12 @@ export function App() {
     root.style.setProperty('--accent-soft', hexToSoft(ACCENT, 0.12));
     root.style.setProperty('--accent-strong', hexToSoft(ACCENT, 0.22));
   }, []);
+
+  // Fetch curriculum once when logged in — replaces hardcoded CHAPTERS
+  useEffect(() => {
+    if (!authUser) return;
+    apiGetCurriculum().then(setCurriculum).catch(() => { /* keep hardcoded fallback */ });
+  }, [authUser]);
 
   // Fetch real data when logged in
   useEffect(() => {
@@ -125,6 +141,33 @@ export function App() {
     fetchStudentsForClass(classId);
   }, [nav.view, nav.classId]);
 
+  function fetchReportForStudent(studentId: string) {
+    if (reportCache[studentId] || fetchingReports.current.has(studentId)) return;
+    fetchingReports.current.add(studentId);
+    apiGetStudentReport(studentId).then((report) => {
+      setReportCache((prev) => ({ ...prev, [studentId]: report }));
+    }).catch(() => {
+      fetchingReports.current.delete(studentId);
+    });
+  }
+
+  // Fetch progress report when navigating to a student detail
+  useEffect(() => {
+    if (nav.view !== 'student-detail' || !nav.studentId) return;
+    fetchReportForStudent(nav.studentId);
+    fetchMhHistoryForStudent(nav.studentId);
+  }, [nav.view, nav.studentId]);
+
+  function fetchMhHistoryForStudent(studentId: string) {
+    if (mhHistoryCache[studentId] || fetchingMhHistory.current.has(studentId)) return;
+    fetchingMhHistory.current.add(studentId);
+    apiGetMentalHealthHistory(studentId).then((history) => {
+      setMhHistoryCache((prev) => ({ ...prev, [studentId]: history }));
+    }).catch(() => {
+      fetchingMhHistory.current.delete(studentId);
+    });
+  }
+
   function handleLogin(token: string, user: AuthUser) {
     localStorage.setItem('lumen_token', token);
     localStorage.setItem('lumen_user', JSON.stringify(user));
@@ -132,7 +175,11 @@ export function App() {
     setRealClasses(null);
     setApiSchool(null);
     setStudentCache({});
+    setReportCache({});
+    setMhHistoryCache({});
     fetchingStudents.current.clear();
+    fetchingReports.current.clear();
+    fetchingMhHistory.current.clear();
     setNavRaw(initialNav(user));
   }
 
@@ -143,7 +190,11 @@ export function App() {
     setRealClasses(null);
     setApiSchool(null);
     setStudentCache({});
+    setReportCache({});
+    setMhHistoryCache({});
     fetchingStudents.current.clear();
+    fetchingReports.current.clear();
+    fetchingMhHistory.current.clear();
     setNavRaw({ view: 'dashboard' });
   }
 
@@ -167,7 +218,7 @@ export function App() {
 
   const isAdmin = role === 'admin';
 
-  // Use real classes for teacher when available, otherwise fall back to mock
+  // Use real classes when available, fall back to mock for demo
   const classes: Klass[] = realClasses ?? CLASSES_TEACHER;
   const allClasses: Klass[] = isAdmin ? CLASSES_ALL : classes;
 
@@ -264,7 +315,9 @@ export function App() {
             <ViewClassDetail klass={klass} onNavigate={setNav} focusPointId={nav.focusPointId} tweak={tweak} />
           )}
           {nav.view === 'student-detail' && student && klass && (
-            <ViewStudentDetail student={student} klass={klass} onNavigate={setNav} />
+            <ViewStudentDetail student={student} klass={klass} onNavigate={setNav}
+              report={nav.studentId ? reportCache[nav.studentId] : undefined}
+              mhHistory={nav.studentId ? mhHistoryCache[nav.studentId] : undefined} />
           )}
           {nav.view === 'mental-health' && (
             <ViewMentalHealth classes={isAdmin ? allClasses : classes} onNavigate={setNav} />
@@ -272,7 +325,8 @@ export function App() {
 
           {/* Admin views */}
           {nav.view === 'admin-school' && (
-            <ViewAdminSchool classes={allClasses} onNavigate={setNav} schoolNameOverride={schoolNameOverride} />
+            <ViewAdminSchool classes={allClasses} onNavigate={setNav}
+              schoolNameOverride={schoolNameOverride} apiSchool={apiSchool ?? undefined} />
           )}
           {nav.view === 'admin-grade' && (
             <ViewAdminGrade classes={allClasses} onNavigate={setNav} />

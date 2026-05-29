@@ -1,9 +1,35 @@
 // Mastery and class-level math helpers.
-import type { Klass, KnowledgePoint, MasteryLevel, Student, Subject } from '../types';
+import type { Chapter, Klass, KnowledgePoint, MasteryLevel, Student, Subject } from '../types';
+import type { ApiSubject } from './api';
 import { CHAPTERS } from './data';
 
-export function chaptersFor(subjectId: Subject['id']) {
-  return CHAPTERS[subjectId] || [];
+// Live curriculum store — starts with hardcoded fallback, replaced when API data loads.
+let liveChapters: Record<string, Chapter[]> = CHAPTERS;
+
+function subjectNameToId(name: string): Subject['id'] | null {
+  const l = name.toLowerCase();
+  if (l.includes('math')) return 'math';
+  if (l.includes('english')) return 'english';
+  if (l.includes('chinese') || l.includes('语') || l.includes('文')) return 'chinese';
+  return null;
+}
+
+export function setCurriculum(subjects: ApiSubject[]) {
+  const next: Record<string, Chapter[]> = {};
+  for (const subj of subjects) {
+    const id = subjectNameToId(subj.name);
+    if (!id) continue;
+    next[id] = subj.chapters.map((ch) => ({
+      id: ch.id,
+      name: ch.name,
+      points: ch.knowledgePoints.map((kp) => ({ id: kp.id, name: kp.name })),
+    }));
+  }
+  if (Object.keys(next).length > 0) liveChapters = next;
+}
+
+export function chaptersFor(subjectId: Subject['id']): Chapter[] {
+  return liveChapters[subjectId] || [];
 }
 
 export function pointsFor(subjectId: Subject['id']): KnowledgePoint[] {

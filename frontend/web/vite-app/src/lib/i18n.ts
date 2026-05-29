@@ -7,6 +7,7 @@ import { useSyncExternalStore } from 'react';
 import type { Klass, Lang, Subject } from '../types';
 import { SCHOOL } from './data';
 import { ZH_TW } from './i18n.zh-TW';
+import { EN } from './i18n.en';
 
 let currentLang: Lang = 'en';
 const listeners = new Set<() => void>();
@@ -33,10 +34,18 @@ export function useLang() {
 }
 
 export function t(key: string, params?: Record<string, string | number>) {
-  let out =
-    currentLang === 'zh-TW' && Object.prototype.hasOwnProperty.call(ZH_TW, key)
-      ? ZH_TW[key]
-      : key;
+  const isChineseKey = /[一-鿿]/.test(key);
+  let out: string;
+  if (currentLang === 'zh-TW') {
+    out = Object.prototype.hasOwnProperty.call(ZH_TW, key) ? ZH_TW[key] : key;
+  } else if (isChineseKey) {
+    // Chinese key in English mode: prefer English translation, fall back to Traditional Chinese
+    if (Object.prototype.hasOwnProperty.call(EN, key)) out = EN[key];
+    else if (Object.prototype.hasOwnProperty.call(ZH_TW, key)) out = ZH_TW[key];
+    else out = key;
+  } else {
+    out = key;
+  }
   if (params) {
     for (const k of Object.keys(params)) {
       out = out.split('{' + k + '}').join(String(params[k]));

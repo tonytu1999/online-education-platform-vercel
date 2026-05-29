@@ -2,6 +2,7 @@
 // mental-health snapshot, grade table, per-subject cards.
 
 import type { Klass, NavState } from '../types';
+import type { ApiSchoolStat } from '../lib/api';
 import { SUBJECTS, SCHOOL, SCHOOL_WEEKLY } from '../lib/data';
 import { classMastery, classRiskDist } from '../lib/mastery';
 import { gradesLabel, schoolName, subjectLabel, t, termLabel } from '../lib/i18n';
@@ -21,9 +22,10 @@ interface ViewAdminSchoolProps {
   classes: Klass[];
   onNavigate: (n: NavState) => void;
   schoolNameOverride?: string;
+  apiSchool?: ApiSchoolStat;
 }
 
-export function ViewAdminSchool({ classes, onNavigate, schoolNameOverride }: ViewAdminSchoolProps) {
+export function ViewAdminSchool({ classes, onNavigate, schoolNameOverride, apiSchool }: ViewAdminSchoolProps) {
   const total = classes.reduce((a, c) => a + c.students.length, 0);
   const grades = [...new Set(classes.map((c) => c.grade))].sort((a, b) => a - b);
 
@@ -55,7 +57,6 @@ export function ViewAdminSchool({ classes, onNavigate, schoolNameOverride }: Vie
   );
 
   const avgSchoolMastery = byGrade.reduce((a, g) => a + g.mastery * g.students, 0) / (total || 1);
-
   const bySubject = SUBJECTS.map((subj) => {
     const inSubj = classes.filter((c) => c.subjectId === subj.id);
     if (!inSubj.length) return null;
@@ -72,7 +73,7 @@ export function ViewAdminSchool({ classes, onNavigate, schoolNameOverride }: Vie
           <p className="view__sub">
             {t('{term} · {students} students · {teachers} teachers · {grades}', {
               term: termLabel(),
-              students: SCHOOL.studentCount,
+              students: apiSchool?.totalStudents ?? SCHOOL.studentCount,
               teachers: SCHOOL.teacherCount,
               grades: gradesLabel(),
             })}

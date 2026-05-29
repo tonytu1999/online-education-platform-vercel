@@ -52,6 +52,91 @@ const normalizeSignals = (signals: unknown): string[] => {
   return [...new Set(signals.map((signal) => String(signal).trim()).filter((signal) => signal.length > 0))].slice(0, 6);
 };
 
+// Maps raw matched phrases/words to generalised category labels exposed in API responses.
+const SIGNAL_TO_CATEGORY: Record<string, string> = {
+  // Sleep
+  'cannot sleep': 'sleep_disturbance', "can't sleep": 'sleep_disturbance',
+  'cannot sleep well': 'sleep_disturbance', "can't sleep well": 'sleep_disturbance',
+  insomnia: 'sleep_disturbance',
+  'sleep well': 'positive_wellbeing', 'slept well': 'positive_wellbeing', 'sleeping well': 'positive_wellbeing',
+  // Concentration
+  'cannot focus': 'concentration_difficulty', "can't focus": 'concentration_difficulty',
+  'cannot concentrate': 'concentration_difficulty', "can't concentrate": 'concentration_difficulty',
+  // Appetite
+  'cannot eat': 'appetite_change', "can't eat": 'appetite_change',
+  // Overwhelm / coping
+  'cannot stop crying': 'emotional_distress', "can't stop crying": 'emotional_distress',
+  'cannot do this': 'overwhelm', "can't do this": 'overwhelm',
+  'cannot cope': 'overwhelm', "can't cope": 'overwhelm',
+  overwhelm: 'overwhelm', burnout: 'overwhelm',
+  'very overwhelmed': 'overwhelm', 'so overwhelmed': 'overwhelm',
+  // Motivation
+  'no motivation': 'low_motivation', 'lost motivation': 'low_motivation',
+  'no point': 'low_motivation', 'no hope': 'low_motivation',
+  'give up': 'low_motivation', 'giving up': 'low_motivation', 'want to give up': 'low_motivation',
+  // Fatigue / energy
+  'no energy': 'fatigue', exhausted: 'fatigue', drained: 'fatigue',
+  'very tired': 'fatigue', 'really tired': 'fatigue', 'so tired': 'fatigue',
+  // Emotional distress
+  'very sad': 'emotional_distress', 'really sad': 'emotional_distress',
+  'so sad': 'emotional_distress', 'extremely sad': 'emotional_distress',
+  'very depressed': 'emotional_distress', 'really depressed': 'emotional_distress',
+  'feel lost': 'emotional_distress', 'feeling lost': 'emotional_distress',
+  'feel hopeless': 'emotional_distress', 'feeling hopeless': 'emotional_distress',
+  'feel empty': 'emotional_distress', 'feeling empty': 'emotional_distress',
+  'feel terrible': 'emotional_distress', 'feeling terrible': 'emotional_distress',
+  'feel awful': 'emotional_distress', 'feeling awful': 'emotional_distress',
+  'break down': 'emotional_distress', 'breaking down': 'emotional_distress',
+  humiliated: 'emotional_distress', ashamed: 'emotional_distress',
+  embarrassed: 'emotional_distress', disappointed: 'emotional_distress', disappoint: 'emotional_distress',
+  // Anxiety / stress
+  'very anxious': 'anxiety', 'really anxious': 'anxiety', 'so anxious': 'anxiety',
+  'very worried': 'anxiety', 'really worried': 'anxiety',
+  'very stressed': 'anxiety', 'really stressed': 'anxiety', 'so stressed': 'anxiety',
+  'very scared': 'anxiety', 'really scared': 'anxiety',
+  // Self-worth
+  'feel worthless': 'self_worth_issues', 'feeling worthless': 'self_worth_issues',
+  'feel useless': 'self_worth_issues', 'feeling useless': 'self_worth_issues',
+  // Social isolation
+  'very lonely': 'social_isolation', 'so lonely': 'social_isolation',
+  'feel alone': 'social_isolation', 'feeling alone': 'social_isolation',
+  // Academic pressure
+  struggling: 'academic_pressure', failing: 'academic_pressure',
+  punish: 'academic_pressure', punished: 'academic_pressure', scolded: 'academic_pressure',
+  'low grade': 'academic_pressure', 'low marks': 'academic_pressure', 'bad grade': 'academic_pressure',
+  'fail exam': 'academic_pressure', 'going to fail': 'academic_pressure',
+  'falling behind': 'academic_pressure', 'fall behind': 'academic_pressure', 'need help': 'academic_pressure',
+  // Crisis
+  suicide: 'crisis_risk', 'commit suicide': 'crisis_risk',
+  'self-harm': 'crisis_risk', 'self harm': 'crisis_risk', selfharm: 'crisis_risk',
+  'want to die': 'crisis_risk', 'hurt myself': 'crisis_risk',
+  'end my life': 'crisis_risk', 'kill myself': 'crisis_risk',
+  // Positive wellbeing
+  'feel good': 'positive_wellbeing', 'feeling good': 'positive_wellbeing',
+  'feel better': 'positive_wellbeing', 'feeling better': 'positive_wellbeing',
+  'feel great': 'positive_wellbeing', 'feeling great': 'positive_wellbeing',
+  'feel happy': 'positive_wellbeing', 'feeling happy': 'positive_wellbeing',
+  'feel calm': 'positive_wellbeing', 'feeling calm': 'positive_wellbeing',
+  'feel confident': 'positive_wellbeing', 'feeling confident': 'positive_wellbeing',
+  'feel motivated': 'positive_wellbeing', 'feeling motivated': 'positive_wellbeing',
+  'feel relaxed': 'positive_wellbeing', 'feeling relaxed': 'positive_wellbeing',
+  'do well': 'positive_wellbeing', 'did well': 'positive_wellbeing', 'doing well': 'positive_wellbeing',
+  'much better': 'positive_wellbeing', 'so much better': 'positive_wellbeing', 'no stress': 'positive_wellbeing',
+  motivated: 'positive_wellbeing', determined: 'positive_wellbeing', resilient: 'positive_wellbeing',
+  productive: 'positive_wellbeing', improved: 'positive_wellbeing', progress: 'positive_wellbeing',
+  succeed: 'positive_wellbeing', focused: 'positive_wellbeing', curious: 'positive_wellbeing',
+};
+
+// Converts raw matched phrases/words to deduplicated category labels.
+const signalsToCategories = (rawSignals: string[]): string[] => {
+  const categories = new Set<string>();
+  for (const signal of rawSignals) {
+    const category = SIGNAL_TO_CATEGORY[signal.toLowerCase().trim()];
+    if (category) categories.add(category);
+  }
+  return [...categories];
+};
+
 // Classify the current message sentiment by its delta (-10..10)
 const classifyDelta = (delta: number): {
   statusLabel: MentalHealthLabel;
@@ -192,17 +277,18 @@ const computeSentimentScore = (texts: string[]): { score: number; signals: strin
   return { score: finalScore, signals };
 };
 
-// Analyse student messages in a session, return scoreDelta and signals
+// Analyse student messages in a session, return scoreDelta and category signals
 const analyzeSessionSentiment = (
   currentMessage: string,
   contextMessages: ChatMessage[]
 ): { scoreDelta: number; signals: string[]; reasonSummary: string } => {
   const texts = [currentMessage, ...contextMessages.filter((m) => m.role === 'user').map((m) => m.content)];
-  const { score, signals } = computeSentimentScore(texts);
+  const { score, signals: rawSignals } = computeSentimentScore(texts);
   const scoreDelta = clampNumber(Math.round(score * 10), -10, 10);
+  const signals = signalsToCategories(rawSignals);
 
   const reasonSummary = signals.length > 0
-    ? `Sentiment score ${score.toFixed(2)} based on: ${signals.slice(0, 4).join(', ')}.`
+    ? `Detected categories: ${signals.slice(0, 4).join(', ')}.`
     : 'No strong sentiment signals detected; treated as neutral.';
 
   return { scoreDelta, signals, reasonSummary };
@@ -290,12 +376,13 @@ export const getConversationHistory = async (sessionId: string): Promise<ChatMes
   try {
     const messages = await prisma.chatHistory.findMany({
       where: { sessionId },
-      orderBy: { createdAt: 'asc' },
-      take: -10, // Get last 10 messages
+      orderBy: { createdAt: 'desc' },
+      take: 10,
       select: { message: true, sender: true }
     });
 
-    return messages.map(msg => ({
+    // Reverse to restore chronological order for the API messages array
+    return messages.reverse().map(msg => ({
       role: msg.sender === 'USER' ? 'user' : 'assistant',
       content: msg.message
     }));
@@ -399,11 +486,12 @@ export const assessSessionMentalHealth = async (
   });
 
   const texts = rows.map((r) => r.message);
-  const { score: sentimentScore, signals: matched } = computeSentimentScore(texts);
+  const { score: sentimentScore, signals: rawMatched } = computeSentimentScore(texts);
   const scoreDelta = clampNumber(Math.round(sentimentScore * 10), -10, 10);
+  const matched = signalsToCategories(rawMatched);
 
   const reasonSummary = matched.length > 0
-    ? `Whole-session sentiment: ${sentimentScore.toFixed(2)} based on: ${matched.slice(0, 4).join(', ')}.`
+    ? `Whole-session detected categories: ${matched.slice(0, 4).join(', ')}.`
     : 'No strong sentiment signals detected in the session; treated as neutral.';
 
   const currentScore = await getLatestMentalHealthScore(studentId);
@@ -522,6 +610,10 @@ export const generateSocraticResponse = async (
       if (session) {
         conversationHistory = await getConversationHistory(session.id);
         subject = session.subject || undefined;
+        // Use the session's stored system prompt when no explicit override is given
+        if (!customSystemPrompt) {
+          customSystemPrompt = (session as any).systemPrompt ?? undefined;
+        }
         console.log('[AI Service] Session subject:', subject);
       }
     } catch (error) {
@@ -674,6 +766,10 @@ export const generateMentalHealthResponse = async (
     const session = await resolveChatSession(sessionId);
     if (session) {
       conversationHistory = await getConversationHistory(session.id);
+      // Use the session's stored system prompt when no explicit override is given
+      if (!customSystemPrompt) {
+        customSystemPrompt = (session as any).systemPrompt ?? undefined;
+      }
     }
   } catch (error) {
     console.error('[AI Service] Error fetching mental chat history:', error);

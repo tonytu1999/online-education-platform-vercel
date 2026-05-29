@@ -121,3 +121,97 @@ export async function apiGetClassStudents(
   if (!res.ok) throw new Error(data.error ?? "Failed to load students");
   return data;
 }
+
+export interface ApiMentalHealthRecord {
+  id: string;
+  scoreDelta: number;
+  statusScore: number;
+  statusLabel: string;
+  riskLevel: string;
+  emotionPolarity: string;
+  signals: string[];
+  createdAt: string;
+  sourceSessionId: string | null;
+}
+
+export async function apiGetMentalHealthHistory(
+  studentId: string,
+  limit = 100,
+): Promise<ApiMentalHealthRecord[]> {
+  const params = new URLSearchParams({ studentId, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/ai/mental-health/history?${params}`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? 'Failed to load mental health history');
+  return data.history;
+}
+
+export interface ApiProgressKP {
+  name: string;
+  mastery: 'MASTERED' | 'PARTIAL' | 'UNMASTERED';
+  studyTimeSeconds: number;
+  updatedAt: string;
+}
+
+export interface ApiProgressChapter {
+  chapter: string;
+  knowledgePoints: ApiProgressKP[];
+}
+
+export interface ApiProgressSubject {
+  subject: string;
+  chapters: ApiProgressChapter[];
+}
+
+export interface ApiStudentReport {
+  student: { id: string; name: string };
+  summary: {
+    totalKnowledgePoints: number;
+    mastered: number;
+    partial: number;
+    unmastered: number;
+    totalStudyTimeSeconds: number;
+  };
+  subjects: ApiProgressSubject[];
+}
+
+export interface ApiKnowledgePoint {
+  id: string;
+  name: string;
+  desc?: string;
+  chapterId: string;
+}
+
+export interface ApiChapter {
+  id: string;
+  name: string;
+  subjectId: string;
+  knowledgePoints: ApiKnowledgePoint[];
+}
+
+export interface ApiSubject {
+  id: string;
+  name: string;
+  chapters: ApiChapter[];
+}
+
+export async function apiGetCurriculum(): Promise<ApiSubject[]> {
+  const res = await fetch(`${API_BASE}/curriculum/subjects`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? 'Failed to load curriculum');
+  return data;
+}
+
+export async function apiGetStudentReport(
+  studentId: string,
+): Promise<ApiStudentReport> {
+  const res = await fetch(`${API_BASE}/progress/${studentId}/report`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to load student report");
+  return data;
+}

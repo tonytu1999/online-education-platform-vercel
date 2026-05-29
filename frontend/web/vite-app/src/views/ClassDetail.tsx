@@ -14,6 +14,7 @@ import {
   studentMastery,
 } from '../lib/mastery';
 import { chapterLabel, classDisplayName, subjectLabel, t, termLabel } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { classNames, fmtMinutes, lastActiveStr, pct } from '../lib/format';
 import {
   Avatar,
@@ -27,8 +28,8 @@ import {
   Tabs,
 } from '../components/primitives';
 import { MasteryHeatmap, PointMasteryRow, Sparkline } from '../components/charts';
-import { ActivityItem } from './Dashboard';
 import { ClassMentalHealth } from './MentalHealth';
+import { ActivityItem } from './Dashboard';
 
 interface ViewClassDetailProps {
   klass: Klass;
@@ -305,7 +306,7 @@ function ClassStudentsList({ klass, onNavigate }: { klass: Klass; onNavigate: (n
                   <button
                     className="link"
                     style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}
-                    onClick={() => setPendingRemoveId(s.id)}
+                    onClick={() => showToast(t('Coming soon'))}
                   >
                     {t('Remove')}
                   </button>

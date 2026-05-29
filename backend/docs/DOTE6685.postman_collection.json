@@ -1253,7 +1253,7 @@
                 "chat"
               ]
             },
-            "description": "Auth: Required. Send a message in a session. Behaviour is determined automatically by `sessionType`:\n\n- **Socratic** — AI replies with a guiding question; title set from first message. Learning behaviour analysis runs in the background: engaged knowledge points and mastery level (`UNMASTERED / PARTIAL / MASTERED`) are identified and `Progress` records are upserted automatically. **Mastery only moves forward** — once a knowledge point reaches `MASTERED`, subsequent messages cannot downgrade it.\n- **Mental** — AI replies as an empathetic wellbeing companion. No learning analysis.\n- **Both** — AFINN sentiment is scored and returned in `mentalHealth`.\n\nThe custom system prompt set when the session was created is applied automatically — no need to pass it here.\n\n**Tip:** Pass `subject` when creating the session (`POST /ai/sessions`) so the background analysis is scoped to the correct curriculum knowledge points."
+            "description": "Auth: Required. Send a message in a session. Behaviour is determined automatically by `sessionType`:\n\n- **Socratic** — AI replies with a guiding question; title set from first message. Learning behaviour analysis runs in the background: engaged knowledge points and mastery level (`UNMASTERED / PARTIAL / MASTERED`) are identified and `Progress` records are upserted automatically. **Mastery only moves forward** — once a knowledge point reaches `MASTERED`, subsequent messages cannot downgrade it.\n- **Mental** — AI replies as an empathetic wellbeing companion. No learning analysis.\n- **Both** — AFINN sentiment is scored and returned in `mentalHealth`.\n\nThe custom system prompt set when the session was created is applied automatically — no need to pass it here.\n\n**`mentalHealth.signals`** in the response contains generalised category labels (not raw phrases), e.g. `[\"sleep_disturbance\", \"academic_pressure\"]`. Every message creates a record retrievable via `GET /ai/mental-health/history` for charting.\n\n**Tip:** Pass `subject` when creating the session (`POST /ai/sessions`) so the background analysis is scoped to the correct curriculum knowledge points."
           },
           "response": []
         },
@@ -1314,7 +1314,51 @@
                 "mental-health"
               ]
             },
-            "description": "Auth: Required. Run AFINN sentiment analysis across **all student messages** in the session and store one summary record. Useful for a post-session wellbeing report.\n\nNo request body — pass the session id in the URL.\n\nResponse includes: `sentimentScore` (-1 to 1), `scoreDelta`, `currentScore`, `statusLabel`, `emotionPolarity`, `riskLevel`, `signals`, `reasonSummary`, `recordId`"
+            "description": "Auth: Required. Run AFINN sentiment analysis across **all student messages** in the session and store one summary record. Useful for a post-session wellbeing report.\n\nNo request body — pass the session id in the URL.\n\nResponse includes: `sentimentScore` (-1 to 1), `scoreDelta`, `currentScore`, `statusLabel`, `emotionPolarity`, `riskLevel`, `signals`, `reasonSummary`, `recordId`\n\n**`signals`** — generalised category labels (not raw phrases). Possible values: `sleep_disturbance`, `concentration_difficulty`, `appetite_change`, `emotional_distress`, `overwhelm`, `low_motivation`, `fatigue`, `anxiety`, `self_worth_issues`, `social_isolation`, `academic_pressure`, `crisis_risk`, `positive_wellbeing`."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Mental Health Score History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/ai/mental-health/history",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "ai",
+                "mental-health",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "sessionId",
+                  "value": "{{chatSessionId}}",
+                  "description": "Optional. Filter to a specific session.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Optional. Max records to return (capped at 500). Default 100.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Auth: Required. Returns the authenticated student's mental health score history in chronological order — one record per chat message. Designed for frontend charting.\n\n**Query params (all optional)**\n- `sessionId` — filter to a single session\n- `limit` — max records (default 100, capped at 500)\n\n**Response**\n```json\n{\n  \"history\": [\n    {\n      \"id\": \"...\",\n      \"scoreDelta\": -3,\n      \"statusScore\": -12,\n      \"statusLabel\": \"BAD\",\n      \"riskLevel\": \"HIGH\",\n      \"emotionPolarity\": \"NEGATIVE\",\n      \"signals\": [\"sleep_disturbance\", \"academic_pressure\"],\n      \"createdAt\": \"2026-05-29T10:00:00.000Z\",\n      \"sourceSessionId\": \"...\"\n    }\n  ]\n}\n```\n\n**Chart usage**\n- Plot `statusScore` as a line (cumulative running score, -100 to 100)\n- Plot `scoreDelta` as bars (per-message change, -10 to 10)\n- Use `statusLabel` (`GOOD` / `NEUTRAL` / `BAD`) to colour data points\n\n**`signals`** — generalised category labels. Possible values: `sleep_disturbance`, `concentration_difficulty`, `appetite_change`, `emotional_distress`, `overwhelm`, `low_motivation`, `fatigue`, `anxiety`, `self_worth_issues`, `social_isolation`, `academic_pressure`, `crisis_risk`, `positive_wellbeing`."
           },
           "response": []
         }

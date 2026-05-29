@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Chapter, Klass, NavState, Student, Subject } from '../types';
+import type { ApiMentalHealthRecord, ApiStudentReport } from '../lib/api';
 import { SUBJECTS } from '../lib/data';
 import {
   chaptersFor,
@@ -10,6 +11,7 @@ import {
   studentMastery,
 } from '../lib/mastery';
 import { classDisplayName, chapterLabel, pointLabel, subjectLabel, t } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { classNames, fmtMinutes, lastActiveStr, pct } from '../lib/format';
 import {
   Avatar,
@@ -28,14 +30,30 @@ interface ViewStudentDetailProps {
   student: Student;
   klass: Klass;
   onNavigate: (n: NavState) => void;
+  report?: ApiStudentReport;
+  mhHistory?: ApiMentalHealthRecord[];
 }
 
-export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDetailProps) {
+export function ViewStudentDetail({ student, klass, onNavigate, report, mhHistory }: ViewStudentDetailProps) {
   const subjectIds: Subject['id'][] = ['math', 'english', 'chinese'];
   const overallMastery = subjectIds
     .map((id) => ({ id, m: studentMastery(student, id) }))
     .filter((x) => pointsFor(x.id).length > 0);
-  const avg = overallMastery.reduce((a, x) => a + x.m, 0) / (overallMastery.length || 1);
+
+  // Use real report summary for overall mastery when available
+  const avg = report && report.summary.totalKnowledgePoints > 0
+    ? (report.summary.mastered + report.summary.partial * 0.5) / report.summary.totalKnowledgePoints
+    : overallMastery.reduce((a, x) => a + x.m, 0) / (overallMastery.length || 1);
+
+  // Real sentiment trend from MH history — normalize statusScore [-100,100] → [-1,1]
+  // Take last 30 records (history is asc by createdAt); fall back to seeded trend
+  const sentimentTrend: number[] = mhHistory && mhHistory.length > 0
+    ? mhHistory.slice(-30).map((r) => Math.max(-1, Math.min(1, r.statusScore / 100)))
+    : student.sentimentTrend;
+  const currentSentiment = mhHistory && mhHistory.length > 0
+    ? Math.max(-1, Math.min(1, mhHistory[mhHistory.length - 1].statusScore / 100))
+    : student.sentiment;
+
 
   return (
     <div className="view view-student">
@@ -56,8 +74,7 @@ export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDet
           </div>
         </div>
         <div className="student-hero__actions">
-          <button className="btn btn--ghost">{t('Message')}</button>
-          <button className="btn btn--ghost">{t('Open conversation log')}</button>
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Message')}</button>
         </div>
       </div>
 
@@ -93,9 +110,12 @@ export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDet
             </div>
           </Card>
 
-          {SUBJECTS.filter((s) => pointsFor(s.id).length > 0).map((subj) => (
-            <SubjectMasteryBlock key={subj.id} student={student} subject={subj} chapters={chaptersFor(subj.id)} />
-          ))}
+          {report && report.subjects.length > 0
+            ? report.subjects.map((s) => <ReportSubjectBlock key={s.subject} subj={s} />)
+            : SUBJECTS.filter((s) => pointsFor(s.id).length > 0).map((subj) => (
+                <SubjectMasteryBlock key={subj.id} student={student} subject={subj} chapters={chaptersFor(subj.id)} />
+              ))
+          }
         </div>
 
         <aside className="student-grid__aside">
@@ -107,21 +127,22 @@ export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDet
             <div className="mh-section">
               <div className="mh-row">
                 <span className="mh-label">{t('Sentiment')}</span>
-                <SentimentMeter value={student.sentiment} />
+                <SentimentMeter value={currentSentiment} />
               </div>
               <div className="mh-row mh-row--block">
-                <span className="mh-label">{t('14-day sentiment trend')}</span>
-                <Sparkline data={student.sentimentTrend.map((v) => v + 1)}
+                <span className="mh-label">{t('{n}-point sentiment trend', { n: sentimentTrend.length })}</span>
+                <Sparkline data={sentimentTrend.map((v) => v + 1)}
                   width={240} height={40} stroke="var(--risk-medium)" fill="oklch(0.95 0.04 60)" />
               </div>
-              <div className="mh-row mh-row--block">
-                <span className="mh-label">{t('Recent stress keywords')}</span>
-                <div className="kw-tags">
-                  <span className="kw-tag">{t('homework load')}</span>
-                  <span className="kw-tag">{t('grades')}</span>
-                  <span className="kw-tag">{t('sleep')}</span>
+              {student.mentalHealthKeywords && (
+                <div className="mh-row mh-row--block">
+                  <span className="mh-label">{t('Recent stress keywords')}</span>
+                  <div className="kw-tags">
+                    {student.mentalHealthKeywords.split(',').map((k) => k.trim()).filter(Boolean).slice(0, 5)
+                      .map((k) => <span key={k} className="kw-tag">{k}</span>)}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Card>
 
@@ -148,8 +169,8 @@ export function ViewStudentDetail({ student, klass, onNavigate }: ViewStudentDet
                   : t('Socratic responses suggest over-reliance on direct prompts.')}
               </p>
               <div className="ai-summary__actions">
-                <button className="btn btn--ghost">{t('Suggest practice set')}</button>
-                <button className="btn btn--ghost">{t('Adjust mastery')}</button>
+                <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Suggest practice set')}</button>
+                <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Adjust mastery')}</button>
               </div>
             </div>
           </Card>
@@ -204,6 +225,66 @@ function SubjectMasteryBlock({
                       <div key={p.id} className={classNames('kp-row', `kp-row--${lvl}`)}>
                         <MasteryDot level={lvl} />
                         <span className="kp-row__name">{pointLabel(p.name)}</span>
+                        <span className={classNames('kp-row__lbl', `kp-row__lbl--${lvl}`)}>
+                          {lvl === 'mastered' ? t('Mastered') : lvl === 'partial' ? t('Partial') : t('Not yet')}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Real report subject block (from backend progress data) ────────────────
+
+function ReportSubjectBlock({ subj }: { subj: import('../lib/api').ApiProgressSubject }) {
+  const [open, setOpen] = useState(true);
+  const totalKP = subj.chapters.reduce((a, c) => a + c.knowledgePoints.length, 0);
+  const mastered = subj.chapters.reduce((a, c) => a + c.knowledgePoints.filter((k) => k.mastery === 'MASTERED').length, 0);
+  const partial  = subj.chapters.reduce((a, c) => a + c.knowledgePoints.filter((k) => k.mastery === 'PARTIAL').length, 0);
+  const score = totalKP > 0 ? (mastered + partial * 0.5) / totalKP : 0;
+
+  return (
+    <Card padded={false}>
+      <button className="subj-head" onClick={() => setOpen(!open)}>
+        <div className="subj-head__title" style={{ marginLeft: 8 }}>
+          <div className="subj-head__name">{t(subj.subject)}</div>
+          <div className="subj-head__sub">
+            {t('{n} chapters · {p} points', { n: subj.chapters.length, p: totalKP })}
+          </div>
+        </div>
+        <div className="subj-head__pct">{pct(score)}%</div>
+        <div className="subj-head__bar" style={{ width: 200 }}><ProgressBar value={score} height={5} /></div>
+        <Icon name="chevronDown" size={18}
+          style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform .15s' }} />
+      </button>
+
+      {open && (
+        <div className="subj-body">
+          {subj.chapters.map((ch) => {
+            const chTotal = ch.knowledgePoints.length;
+            const chMastered = ch.knowledgePoints.filter((k) => k.mastery === 'MASTERED').length;
+            const chPartial  = ch.knowledgePoints.filter((k) => k.mastery === 'PARTIAL').length;
+            const chScore = chTotal > 0 ? (chMastered + chPartial * 0.5) / chTotal : 0;
+            return (
+              <div key={ch.chapter} className="ch-block">
+                <div className="ch-block__head">
+                  <div className="ch-block__name">{chapterLabel(ch.chapter)}</div>
+                  <div className="ch-block__pct">{pct(chScore)}%</div>
+                </div>
+                <div className="ch-block__points">
+                  {ch.knowledgePoints.map((kp) => {
+                    const lvl = kp.mastery === 'MASTERED' ? 'mastered' : kp.mastery === 'PARTIAL' ? 'partial' : 'not';
+                    return (
+                      <div key={kp.name} className={classNames('kp-row', `kp-row--${lvl}`)}>
+                        <MasteryDot level={lvl} />
+                        <span className="kp-row__name">{pointLabel(kp.name)}</span>
                         <span className={classNames('kp-row__lbl', `kp-row__lbl--${lvl}`)}>
                           {lvl === 'mastered' ? t('Mastered') : lvl === 'partial' ? t('Partial') : t('Not yet')}
                         </span>

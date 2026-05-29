@@ -3,6 +3,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import {
   chat,
   checkSessionMentalHealth,
+  getMentalHealthHistory,
   createChatSession,
   getStudentSessions,
   getSessionDetails,
@@ -29,5 +30,8 @@ router.post('/chat', chat);
 
 // Whole-session mental health analysis (on-demand)
 router.post('/sessions/:sessionId/mental-health', checkSessionMentalHealth);
+
+// Mental health score history for charting
+router.get('/mental-health/history', getMentalHealthHistory);
 
 export default router;
