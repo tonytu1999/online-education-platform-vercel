@@ -11,6 +11,7 @@ import {
   studentMastery,
 } from '../lib/mastery';
 import { classDisplayName, chapterLabel, pointLabel, subjectLabel, t } from '../lib/i18n';
+import { showToast } from '../lib/toast';
 import { classNames, fmtMinutes, lastActiveStr, pct } from '../lib/format';
 import {
   Avatar,
@@ -63,7 +64,7 @@ export function ViewStudentDetail({ student, klass, onNavigate, report }: ViewSt
           </div>
         </div>
         <div className="student-hero__actions">
-          <button className="btn btn--ghost">{t('Message')}</button>
+          <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Message')}</button>
         </div>
       </div>
 
@@ -123,6 +124,15 @@ export function ViewStudentDetail({ student, klass, onNavigate, report }: ViewSt
                 <Sparkline data={student.sentimentTrend.map((v) => v + 1)}
                   width={240} height={40} stroke="var(--risk-medium)" fill="oklch(0.95 0.04 60)" />
               </div>
+              {student.mentalHealthKeywords && (
+                <div className="mh-row mh-row--block">
+                  <span className="mh-label">{t('Recent stress keywords')}</span>
+                  <div className="kw-tags">
+                    {student.mentalHealthKeywords.split(',').map((k) => k.trim()).filter(Boolean).slice(0, 5)
+                      .map((k) => <span key={k} className="kw-tag">{k}</span>)}
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -149,8 +159,8 @@ export function ViewStudentDetail({ student, klass, onNavigate, report }: ViewSt
                   : t('Socratic responses suggest over-reliance on direct prompts.')}
               </p>
               <div className="ai-summary__actions">
-                <button className="btn btn--ghost">{t('Suggest practice set')}</button>
-                <button className="btn btn--ghost">{t('Adjust mastery')}</button>
+                <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Suggest practice set')}</button>
+                <button className="btn btn--ghost" onClick={() => showToast(t('Coming soon'))}>{t('Adjust mastery')}</button>
               </div>
             </div>
           </Card>

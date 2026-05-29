@@ -14,7 +14,7 @@ import {
   RiskBadge,
   StatTile,
 } from '../components/primitives';
-import { Donut, SentimentMeter, Sparkline } from '../components/charts';
+import { Donut, KeywordCloud, SentimentMeter, Sparkline } from '../components/charts';
 
 interface ClassMentalHealthProps {
   klass: Klass;
@@ -25,6 +25,21 @@ export function ClassMentalHealth({ klass, onNavigate }: ClassMentalHealthProps)
   const [filter, setFilter] = useState('all');
   const risk = classRiskDist(klass);
   const avgS = classAvgSentiment(klass);
+
+  // Aggregate real keywords from all students, ranked by frequency
+  const classKeywords: Array<{ word: string; weight: number }> = (() => {
+    const freq: Record<string, number> = {};
+    for (const s of klass.students) {
+      if (!s.mentalHealthKeywords) continue;
+      for (const kw of s.mentalHealthKeywords.split(',').map((k) => k.trim()).filter(Boolean)) {
+        freq[kw] = (freq[kw] ?? 0) + 1;
+      }
+    }
+    return Object.entries(freq)
+      .map(([word, weight]) => ({ word, weight }))
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, 8);
+  })();
   const filtered = klass.students.filter((s) =>
     filter === 'all' ? true :
     filter === 'medium' ? s.risk === 'medium' || s.risk === 'high' :
@@ -81,6 +96,12 @@ export function ClassMentalHealth({ klass, onNavigate }: ClassMentalHealthProps)
               <span className="senti-num-lbl">{t('vs. last week +0.03')}</span>
             </div>
           </div>
+          {classKeywords.length > 0 && (
+            <div className="kw-section">
+              <div className="hint-muted" style={{ marginBottom: 8 }}>{t('Top stress keywords this week')}</div>
+              <KeywordCloud keywords={classKeywords} />
+            </div>
+          )}
         </Card>
       </div>
 

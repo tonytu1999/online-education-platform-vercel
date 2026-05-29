@@ -147,7 +147,7 @@ export function ViewStudents({ classes, onNavigate }: ViewStudentsProps) {
                     <button
                       className="link"
                       style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}
-                      onClick={() => setPendingRemoveId(s.id)}
+                      onClick={() => showToast(t('Coming soon'))}
                     >
                       {t('Remove')}
                     </button>
